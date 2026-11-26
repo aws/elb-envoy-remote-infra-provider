@@ -1,0 +1,1629 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://aws.github.io/elb-envoy-remote-infra-provider/dev/troubleshooting/">
+      
+      
+        <link rel="prev" href="../examples/merged_gateways/">
+      
+      
+      
+      <link rel="icon" href="../assets/images/aws_load_balancer_icon.svg">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.31">
+    
+    
+      
+        <title>Troubleshooting - ELB Envoy Remote Infra Provider</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.3cba04c6.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#troubleshooting" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="ELB Envoy Remote Infra Provider" class="md-header__button md-logo" aria-label="ELB Envoy Remote Infra Provider" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ELB Envoy Remote Infra Provider
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Troubleshooting
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/aws/elb-envoy-remote-infra-provider" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aws/elb-envoy-remote-infra-provider
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href=".." class="md-tabs__link">
+          
+  
+  Home
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../deploy/installation/" class="md-tabs__link">
+          
+  
+  Deployment
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../guide/overview/" class="md-tabs__link">
+          
+  
+  Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../examples/getting_started/" class="md-tabs__link">
+          
+  
+  Examples
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+    
+  
+  Troubleshooting
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="ELB Envoy Remote Infra Provider" class="md-nav__button md-logo" aria-label="ELB Envoy Remote Infra Provider" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    ELB Envoy Remote Infra Provider
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/aws/elb-envoy-remote-infra-provider" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aws/elb-envoy-remote-infra-provider
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            Home
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Welcome
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../how-it-works/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    How it works
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../compatibility/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Compatibility
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Deployment
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deploy/installation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Installation Guide
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deploy/configurations/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Configurations
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deploy/subnet_discovery/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Subnet discovery
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deploy/security_groups/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Security groups
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deploy/migration/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Migrating from in-cluster Envoy
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Guide
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/overview/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ELBProxyConfiguration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/spec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Specification
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/tls/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    TLS certificates
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/integrations/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    AWS integrations
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/observability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Observability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Examples
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Examples
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/getting_started/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Getting Started
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/merged_gateways/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Merged Gateways
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quick-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick checks
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installation issues
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Installation issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#envoy-gateway-pods-dont-have-the-sidecar" class="md-nav__link">
+    <span class="md-ellipsis">
+      Envoy Gateway pods don't have the sidecar
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#envoy-gateway-pods-cant-be-created" class="md-nav__link">
+    <span class="md-ellipsis">
+      Envoy Gateway pods can't be created
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-sidecar-keeps-restarting" class="md-nav__link">
+    <span class="md-ellipsis">
+      The sidecar keeps restarting
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-gateway-has-no-address" class="md-nav__link">
+    <span class="md-ellipsis">
+      The Gateway has no address
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#check-the-proxys-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      Check the proxy's status
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#faileddeploymodel-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      FailedDeployModel errors
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#accepted-is-false" class="md-nav__link">
+    <span class="md-ellipsis">
+      Accepted is False
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cant-delete-an-elbproxyconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Can't delete an ELBProxyConfiguration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-proxy-is-up-but-requests-fail" class="md-nav__link">
+    <span class="md-ellipsis">
+      The proxy is up but requests fail
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#global-rate-limiting-doesnt-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      Global rate limiting doesn't work
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#collect-information-for-a-bug-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      Collect information for a bug report
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quick-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick checks
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installation issues
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Installation issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#envoy-gateway-pods-dont-have-the-sidecar" class="md-nav__link">
+    <span class="md-ellipsis">
+      Envoy Gateway pods don't have the sidecar
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#envoy-gateway-pods-cant-be-created" class="md-nav__link">
+    <span class="md-ellipsis">
+      Envoy Gateway pods can't be created
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-sidecar-keeps-restarting" class="md-nav__link">
+    <span class="md-ellipsis">
+      The sidecar keeps restarting
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-gateway-has-no-address" class="md-nav__link">
+    <span class="md-ellipsis">
+      The Gateway has no address
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#check-the-proxys-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      Check the proxy's status
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#faileddeploymodel-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      FailedDeployModel errors
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#accepted-is-false" class="md-nav__link">
+    <span class="md-ellipsis">
+      Accepted is False
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cant-delete-an-elbproxyconfiguration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Can't delete an ELBProxyConfiguration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-proxy-is-up-but-requests-fail" class="md-nav__link">
+    <span class="md-ellipsis">
+      The proxy is up but requests fail
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#global-rate-limiting-doesnt-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      Global rate limiting doesn't work
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#collect-information-for-a-bug-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      Collect information for a bug report
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h1>
+<p>This page helps you diagnose common problems with the sidecar, the controller, and <code>ELBProxyConfiguration</code> resources. Start with the quick checks, then find your symptom in the following sections.</p>
+<details class="note">
+<summary>Prerequisites: install the controller and deploy the example</summary>
+<ol>
+<li>
+<p>Install the controller and Envoy Gateway by following the <a href="../deploy/installation/">Installation Guide</a>.</p>
+</li>
+<li>
+<p>Deploy the example Gateway from <a href="../examples/getting_started/">Getting Started</a>, or set it up in one go:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">PROXY_ROLE_ARN</span><span class="o">=</span>arn:aws:iam::123456789012:role/my-proxy-role
+
+cat<span class="w"> </span><span class="s">&lt;&lt;EOF | kubectl apply -f -</span>
+<span class="s">apiVersion: gateway.envoyproxy.io/v1alpha1</span>
+<span class="s">kind: EnvoyProxy</span>
+<span class="s">metadata:</span>
+<span class="s">  name: elb-proxy</span>
+<span class="s">  namespace: envoy-gateway-system</span>
+<span class="s">spec:</span>
+<span class="s">  ipFamily: IPv4</span>
+<span class="s">  telemetry:</span>
+<span class="s">    accessLog:</span>
+<span class="s">      disable: true</span>
+<span class="s">---</span>
+<span class="s">apiVersion: gateway.networking.k8s.io/v1</span>
+<span class="s">kind: GatewayClass</span>
+<span class="s">metadata:</span>
+<span class="s">  name: elb-proxy-aws</span>
+<span class="s">spec:</span>
+<span class="s">  controllerName: gateway.envoyproxy.io/gatewayclass-controller</span>
+<span class="s">  parametersRef:</span>
+<span class="s">    group: gateway.envoyproxy.io</span>
+<span class="s">    kind: EnvoyProxy</span>
+<span class="s">    name: elb-proxy</span>
+<span class="s">    namespace: envoy-gateway-system</span>
+<span class="s">---</span>
+<span class="s">apiVersion: v1</span>
+<span class="s">kind: Namespace</span>
+<span class="s">metadata:</span>
+<span class="s">  name: echo</span>
+<span class="s">---</span>
+<span class="s">apiVersion: apps/v1</span>
+<span class="s">kind: Deployment</span>
+<span class="s">metadata:</span>
+<span class="s">  name: echo</span>
+<span class="s">  namespace: echo</span>
+<span class="s">spec:</span>
+<span class="s">  replicas: 1</span>
+<span class="s">  selector:</span>
+<span class="s">    matchLabels:</span>
+<span class="s">      app: echo</span>
+<span class="s">  template:</span>
+<span class="s">    metadata:</span>
+<span class="s">      labels:</span>
+<span class="s">        app: echo</span>
+<span class="s">    spec:</span>
+<span class="s">      containers:</span>
+<span class="s">        - name: echo</span>
+<span class="s">          image: registry.k8s.io/gateway-api/echo-basic:v1.5.1</span>
+<span class="s">          ports:</span>
+<span class="s">            - containerPort: 3000</span>
+<span class="s">---</span>
+<span class="s">apiVersion: v1</span>
+<span class="s">kind: Service</span>
+<span class="s">metadata:</span>
+<span class="s">  name: echo</span>
+<span class="s">  namespace: echo</span>
+<span class="s">spec:</span>
+<span class="s">  selector:</span>
+<span class="s">    app: echo</span>
+<span class="s">  ports:</span>
+<span class="s">    - name: http</span>
+<span class="s">      port: 8080</span>
+<span class="s">      targetPort: 3000</span>
+<span class="s">---</span>
+<span class="s">apiVersion: gateway.networking.k8s.io/v1</span>
+<span class="s">kind: Gateway</span>
+<span class="s">metadata:</span>
+<span class="s">  name: echo-gateway</span>
+<span class="s">  namespace: echo</span>
+<span class="s">spec:</span>
+<span class="s">  gatewayClassName: elb-proxy-aws</span>
+<span class="s">  listeners:</span>
+<span class="s">    - name: http</span>
+<span class="s">      protocol: HTTP</span>
+<span class="s">      port: 80</span>
+<span class="s">---</span>
+<span class="s">apiVersion: gateway.networking.k8s.io/v1</span>
+<span class="s">kind: HTTPRoute</span>
+<span class="s">metadata:</span>
+<span class="s">  name: echo</span>
+<span class="s">  namespace: echo</span>
+<span class="s">spec:</span>
+<span class="s">  parentRefs:</span>
+<span class="s">    - name: echo-gateway</span>
+<span class="s">  rules:</span>
+<span class="s">    - backendRefs:</span>
+<span class="s">        - name: echo</span>
+<span class="s">          port: 8080</span>
+<span class="s">---</span>
+<span class="s">apiVersion: gateway.elbproxy.aws/v1alpha1</span>
+<span class="s">kind: ELBProxyConfiguration</span>
+<span class="s">metadata:</span>
+<span class="s">  name: echo-proxy</span>
+<span class="s">  namespace: echo</span>
+<span class="s">spec:</span>
+<span class="s">  targetRefs:</span>
+<span class="s">    - group: gateway.networking.k8s.io</span>
+<span class="s">      kind: Gateway</span>
+<span class="s">      name: echo-gateway</span>
+<span class="s">  roleArn: ${PROXY_ROLE_ARN}</span>
+<span class="s">  networkConfiguration:</span>
+<span class="s">    ipConfiguration:</span>
+<span class="s">      ipAddressingConfiguration:</span>
+<span class="s">        ipv4Addressability: internet-facing</span>
+<span class="s">        ipv6Addressability: "off"</span>
+<span class="s">EOF</span>
+</code></pre></div>
+</li>
+<li>
+<p>Wait for the Gateway, then save its address:</p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span><span class="nb">wait</span><span class="w"> </span>gateway/echo-gateway<span class="w"> </span>-n<span class="w"> </span><span class="nb">echo</span><span class="w"> </span>--for<span class="o">=</span><span class="nv">condition</span><span class="o">=</span>Programmed<span class="w"> </span>--timeout<span class="o">=</span>15m
+<span class="nb">export</span><span class="w"> </span><span class="nv">GATEWAY_HOST</span><span class="o">=</span><span class="k">$(</span>kubectl<span class="w"> </span>get<span class="w"> </span>gateway<span class="w"> </span>echo-gateway<span class="w"> </span>-n<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.status.addresses[0].value}'</span><span class="k">)</span>
+curl<span class="w"> </span>-i<span class="w"> </span>http://<span class="nv">$GATEWAY_HOST</span>/
+</code></pre></div>
+</li>
+</ol>
+</details>
+<h2 id="quick-checks">Quick checks<a class="headerlink" href="#quick-checks" title="Permanent link">&para;</a></h2>
+<p><strong>1. Is the sidecar running in the Envoy Gateway pod?</strong></p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>envoy-gateway-system<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{range .items[*]}{.metadata.name}{": "}{.spec.initContainers[*].name}{"\n"}{end}'</span>
+</code></pre></div>
+<p>Each Envoy Gateway pod should list <code>elb-envoy-remote-infra-provider</code>.</p>
+<p><strong>2. What does the sidecar log say?</strong></p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>logs<span class="w"> </span>-n<span class="w"> </span>envoy-gateway-system<span class="w"> </span>deployment/envoy-gateway<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-c<span class="w"> </span>elb-envoy-remote-infra-provider<span class="w"> </span>--tail<span class="o">=</span><span class="m">200</span>
+</code></pre></div>
+<p>Only one sidecar, the leader, calls AWS. If you run several Envoy Gateway replicas, check each pod, or find the leader:</p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>get<span class="w"> </span>lease<span class="w"> </span>elb-envoy-remote-infra-provider-leader<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-n<span class="w"> </span>envoy-gateway-system<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.spec.holderIdentity}{"\n"}'</span>
+</code></pre></div>
+<p><strong>3. Is the ELBProxyConfiguration accepted, and are its proxies active?</strong></p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>get<span class="w"> </span>elbproxyconfiguration<span class="w"> </span>-A<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-o<span class="w"> </span>custom-columns<span class="o">=</span><span class="s1">'NAMESPACE:.metadata.namespace,NAME:.metadata.name,ACCEPTED:.status.conditions[?(@.type=="Accepted")].reason,PROGRAMMED:.status.conditions[?(@.type=="Programmed")].message'</span>
+</code></pre></div>
+<p><code>PROGRAMMED</code> shows a message such as <code>1 of 2 backing proxies are active</code>. If any proxy isn't active, check its entry in <code>status.proxies</code>. See <a href="#check-the-proxys-status">Check the proxy's status</a>.</p>
+<p><strong>4. What do the Gateway events say?</strong></p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>describe<span class="w"> </span>gateway<span class="w"> </span>&lt;name&gt;<span class="w"> </span>-n<span class="w"> </span>&lt;namespace&gt;
+</code></pre></div>
+<p>Look for <code>SuccessfullyReconciled</code>, <code>FailedDeployModel</code>, or <code>WaitingForProxyDeletion</code> events from <code>elbproxy-gateway-extension</code>.</p>
+<h2 id="installation-issues">Installation issues<a class="headerlink" href="#installation-issues" title="Permanent link">&para;</a></h2>
+<h3 id="envoy-gateway-pods-dont-have-the-sidecar">Envoy Gateway pods don't have the sidecar<a class="headerlink" href="#envoy-gateway-pods-dont-have-the-sidecar" title="Permanent link">&para;</a></h3>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Envoy Gateway Helm values (default)</label><label for="__tabbed_1_2">Webhook</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<ul>
+<li>Check that Envoy Gateway was installed or upgraded with your filled-in <code>eg-values.yaml</code> (<code>helm get values eg -n envoy-gateway-system</code>), and that it includes the <code>deployment.pod.initContainers</code> sidecar.</li>
+<li>Check that you're on Envoy Gateway <strong>v1.10</strong> or later. Older charts ignore <code>deployment.pod.initContainers</code>.</li>
+</ul>
+</div>
+<div class="tabbed-block">
+<p>The webhook only adds the sidecar when a pod is created.</p>
+<ul>
+<li>
+<p>If you installed the chart after Envoy Gateway, restart Envoy Gateway:</p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>rollout<span class="w"> </span>restart<span class="w"> </span>deployment<span class="w"> </span>envoy-gateway<span class="w"> </span>-n<span class="w"> </span>envoy-gateway-system
+</code></pre></div>
+</li>
+<li>
+<p>Check that <code>envoyGatewayNamespace</code> matches the namespace Envoy Gateway runs in. The webhook ignores pods in other namespaces.</p>
+</li>
+<li>
+<p>Check that <code>webhook.enabled=true</code> is set and the webhook is running:</p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>get<span class="w"> </span>deployment<span class="w"> </span>-n<span class="w"> </span>elb-envoy-remote-infra-provider-system
+</code></pre></div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<h3 id="envoy-gateway-pods-cant-be-created">Envoy Gateway pods can't be created<a class="headerlink" href="#envoy-gateway-pods-cant-be-created" title="Permanent link">&para;</a></h3>
+<p>Events on the Envoy Gateway ReplicaSet show <code>failed calling webhook "mpod.gateway.elbproxy.aws"</code>.</p>
+<p>With the default <code>webhook.failurePolicy: Fail</code>, Envoy Gateway pods can't be created while the webhook is unavailable. Fix the webhook deployment first. The ReplicaSet retries on its own once it's back.</p>
+<h3 id="the-sidecar-keeps-restarting">The sidecar keeps restarting<a class="headerlink" href="#the-sidecar-keeps-restarting" title="Permanent link">&para;</a></h3>
+<p>Check the sidecar's previous logs:</p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>logs<span class="w"> </span>-n<span class="w"> </span>envoy-gateway-system<span class="w"> </span>&lt;envoy-gateway-pod&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-c<span class="w"> </span>elb-envoy-remote-infra-provider<span class="w"> </span>--previous
+</code></pre></div>
+<p>The following table lists common startup errors and their fixes.</p>
+<table>
+<thead>
+<tr>
+<th>Error</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>region not resolved; specify --aws-region or set AWS_REGION / AWS_DEFAULT_REGION</code></td>
+<td>Set the sidecar's <code>--aws-region</code>: in <code>eg-values.yaml</code> (default), or <code>aws.region</code> in the chart values (webhook).</td>
+</tr>
+<tr>
+<td><code>NODENAME "..." is not an instance ID; set --aws-vpc-id or --aws-vpc-tags</code></td>
+<td>Set the sidecar's <code>--aws-vpc-id</code>: in <code>eg-values.yaml</code> (default), or <code>aws.vpcId</code> in the chart values (webhook).</td>
+</tr>
+<tr>
+<td><code>resolved VPC ID is empty</code>, <code>no VPC found with tags</code>, or <code>multiple VPCs found with tags</code></td>
+<td>Set <code>--aws-vpc-id</code>, or make the VPC tags match exactly one VPC.</td>
+</tr>
+<tr>
+<td><code>--sidecar-image is required when --enable-sidecar-webhook is set</code></td>
+<td>The webhook deployment has no sidecar image. The chart sets it from <code>image.repository</code> and <code>image.tag</code>, so check those values.</td>
+</tr>
+<tr>
+<td><code>tag key "..." cannot be specified in --default-tags (reserved by controller)</code></td>
+<td>A reserved <code>gateway.elbproxy.aws/</code> key is in <code>--default-tags</code> or <code>--external-managed-tags</code>, or a key is in both flags. Remove it. See <a href="../deploy/configurations/#tagging">Configurations</a>.</td>
+</tr>
+<tr>
+<td><code>AccessDenied</code> or <code>UnauthorizedOperation</code></td>
+<td>Envoy Gateway's service account doesn't have the controller AWS Identity and Access Management (IAM) policy. See <a href="../deploy/installation/#step-2-grant-the-policy-to-the-envoy-gateway-service-account">Installation Guide Step 2</a>. With IRSA, check the annotation is still on the service account: <code>helm uninstall eg</code> removes it. After fixing, restart Envoy Gateway so the pod gets credentials.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="the-gateway-has-no-address">The Gateway has no address<a class="headerlink" href="#the-gateway-has-no-address" title="Permanent link">&para;</a></h2>
+<p>Work through these in order.</p>
+<p><strong>No ELBProxyConfiguration attached.</strong> The controller only creates a proxy for a Gateway that has an <code>ELBProxyConfiguration</code>. The sidecar logs <code>ELBProxyConfiguration not resolved, skipping reconcile</code>. Check that:</p>
+<ul>
+<li><code>spec.targetRefs</code> names the Gateway exactly, with <code>group: gateway.networking.k8s.io</code> and <code>kind: Gateway</code>.</li>
+<li>The <code>ELBProxyConfiguration</code> is in the <strong>same namespace</strong> as the Gateway.</li>
+<li>For a GatewayClass target, the <code>ELBProxyConfiguration</code> is in the Envoy Gateway namespace.</li>
+</ul>
+<p><strong>The ELBProxyConfiguration isn't accepted.</strong> See <a href="#accepted-is-false">Accepted is False</a>.</p>
+<p><strong>The deploy failed before a proxy was created.</strong> Look for a <code>FailedDeployModel</code> event on the Gateway. See <a href="#faileddeploymodel-errors">FailedDeployModel errors</a>.</p>
+<p><strong>The proxy exists but isn't active.</strong> Check its status. See <a href="#check-the-proxys-status">Check the proxy's status</a>. Envoy Gateway shows this on the Gateway as <code>Programmed=False</code> with reason <code>AddressNotAssigned</code>.</p>
+<h2 id="check-the-proxys-status">Check the proxy's status<a class="headerlink" href="#check-the-proxys-status" title="Permanent link">&para;</a></h2>
+<p>Once a proxy exists, its state is in the <code>ELBProxyConfiguration</code>'s <code>status.proxies</code>, one entry per Gateway, with the proxy Amazon Resource Name (ARN):</p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>get<span class="w"> </span>elbproxyconfiguration<span class="w"> </span>&lt;name&gt;<span class="w"> </span>-n<span class="w"> </span>&lt;namespace&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{range .status.proxies[*]}{.gatewayRef.namespace}/{.gatewayRef.name}{"  "}{.proxyArn}{"\n    "}{.conditions[?(@.type=="Programmed")].reason}{": "}{.conditions[?(@.type=="Programmed")].message}{"\n"}{end}'</span>
+</code></pre></div>
+<p>The following table lists each reason and what to do about it.</p>
+<table>
+<thead>
+<tr>
+<th>Reason</th>
+<th>What to do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Programmed</code></td>
+<td>The proxy is active. If requests still fail, see <a href="#the-proxy-is-up-but-requests-fail">The proxy is up but requests fail</a>.</td>
+</tr>
+<tr>
+<td><code>Pending</code></td>
+<td>The proxy is being created, which takes several minutes. The controller checks again every 2 minutes, and the Gateway gets its address when creation finishes. If it stays <code>Pending</code> much longer than usual, open a support case with the proxy ARN.</td>
+</tr>
+<tr>
+<td><code>ActionRequired</code></td>
+<td>The proxy needs action from you. The message lists each reason from AWS as <code>&lt;code&gt;: &lt;message&gt; [&lt;target&gt;]</code>. Fix what it names, such as a resource in <code>[&lt;target&gt;]</code>. The condition updates on the next reconcile.</td>
+</tr>
+<tr>
+<td><code>CreateFailed</code></td>
+<td>The proxy failed to create. Check the sidecar logs around the time it was created, then open a support case with the proxy ARN.</td>
+</tr>
+<tr>
+<td><code>Deleting</code></td>
+<td>The proxy is being deleted. <code>Proxy is being deleted</code> means the Gateway was deleted. <code>Replacing the proxy: deleting the old proxy</code> means a change requires a new proxy and the new proxy has the same name (you set <code>spec.name</code>). The controller creates the new one after the old one is gone, and the Gateway shows <code>WaitingForProxyDeletion</code> meanwhile. Without <code>spec.name</code>, the new proxy has a new name, so the controller creates it right away.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title"><code>SuccessfullyReconciled</code> doesn't mean the proxy is healthy</p>
+<p>With <code>ActionRequired</code> or <code>CreateFailed</code>, the controller's own work still succeeded, so the Gateway gets a <code>SuccessfullyReconciled</code> event, not a warning. The <code>ELBProxyConfiguration</code> status is the only place these states appear.</p>
+</div>
+<p>The top-level <code>Programmed</code> condition is <code>True</code> as long as <strong>any</strong> proxy is active, so with several Gateways, check each entry.</p>
+<h2 id="faileddeploymodel-errors">FailedDeployModel errors<a class="headerlink" href="#faileddeploymodel-errors" title="Permanent link">&para;</a></h2>
+<p>The event message is <code>Failed deploy model due to</code> followed by the error from the failing step. Errors returned by AWS appear in it too, for example <code>failed to create proxy: ...</code>. The following table lists common ones.</p>
+<table>
+<thead>
+<tr>
+<th>Message contains</th>
+<th>Cause and fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>access logging on AWS-managed proxy must either be disabled ...</code></td>
+<td>The Gateway's <code>EnvoyProxy</code> uses Envoy Gateway's default file access log. Set <code>telemetry.accessLog.disable: true</code>, or use an OpenTelemetry or Access Log Service (ALS) sink.</td>
+</tr>
+<tr>
+<td><code>unable to resolve at least one subnet</code></td>
+<td>No eligible subnets found. If you rely on discovery, tag at least two subnets in different Availability Zones with <code>kubernetes.io/role/elb=1</code> (internet-facing) or <code>kubernetes.io/role/internal-elb=1</code> (internal), or list subnets in <code>spec.networkConfiguration.vpcConfiguration.subnets</code>. The message also says how many subnets were skipped for other clusters' tags, fewer than 8 free IP addresses, or (for IPv6 proxies) no IPv6 CIDR block. See <a href="../deploy/subnet_discovery/">Subnet discovery</a>.</td>
+</tr>
+<tr>
+<td><code>subnets count less than minimal required count</code></td>
+<td>The proxy needs at least two subnets.</td>
+</tr>
+<tr>
+<td><code>multiple subnets in same Availability Zone</code></td>
+<td>Pick one subnet per Availability Zone.</td>
+</tr>
+<tr>
+<td><code>do not have an associated IPv6 CIDR block</code></td>
+<td>IPv6 is enabled, so every subnet needs an IPv6 CIDR.</td>
+</tr>
+<tr>
+<td><code>attribute "..." is read-only and cannot be changed from "..." to "..."</code></td>
+<td>You changed an attribute that can't change after the proxy is created. Set the original value again. For <code>waf.web_acl_arn</code>, change the web ACL with the AWS WAF API, then set the spec to match. See <a href="../guide/integrations/#aws-waf">AWS WAF</a>.</td>
+</tr>
+<tr>
+<td><code>attribute "..." is managed by the controller</code></td>
+<td>Remove the Envoy log-level attributes from <code>spec.attributes</code>. Set <code>EnvoyProxy.spec.logging.level</code> instead.</td>
+</tr>
+<tr>
+<td><code>tag key "..." is externally managed</code></td>
+<td>That tag key is in <code>--external-managed-tags</code>. Remove it from <code>spec.tags</code>.</td>
+</tr>
+<tr>
+<td><code>no node security groups discovered</code> or <code>expected exactly one SG tagged "kubernetes.io/cluster/&lt;name&gt;"</code></td>
+<td>The controller couldn't find the security groups of your nodes. Check that the nodes are Ready EC2 instances with an AWS <code>spec.providerID</code>. If a node's primary network interface has several security groups, tag exactly one of them <code>kubernetes.io/cluster/&lt;cluster-name&gt;</code>.</td>
+</tr>
+<tr>
+<td><code>AccessDenied</code></td>
+<td>The controller IAM policy is missing an action, or the resource isn't tagged as controller-managed. Check the policy against <a href="https://github.com/aws/elb-envoy-remote-infra-provider/blob/main/k8s/iam-policy.json"><code>k8s/iam-policy.json</code></a>.</td>
+</tr>
+</tbody>
+</table>
+<p>The controller retries failed deploys automatically. After you fix the cause, the next retry picks up the change.</p>
+<h2 id="accepted-is-false">Accepted is False<a class="headerlink" href="#accepted-is-false" title="Permanent link">&para;</a></h2>
+<p>The following table lists the reasons.</p>
+<table>
+<thead>
+<tr>
+<th>Reason</th>
+<th>Cause and fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Conflicted</code></td>
+<td>Another <code>ELBProxyConfiguration</code> targets the same Gateway and takes precedence. A Gateway-scoped one takes precedence over a GatewayClass-scoped one, and the oldest takes precedence within the same scope, then the lowest namespace and name. Delete or retarget one of them.</td>
+</tr>
+<tr>
+<td><code>InvalidTargetRef</code></td>
+<td>It targets a GatewayClass but isn't in the Envoy Gateway namespace. Move it to that namespace.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="cant-delete-an-elbproxyconfiguration">Can't delete an ELBProxyConfiguration<a class="headerlink" href="#cant-delete-an-elbproxyconfiguration" title="Permanent link">&para;</a></h2>
+<p>The delete hangs, and the sidecar logs <code>ELBProxyConfiguration ... is still in use by gateway ...</code>.</p>
+<p>An <code>ELBProxyConfiguration</code> has a finalizer, so it can't be deleted while a Gateway uses it. Delete the Gateway first, or attach a different <code>ELBProxyConfiguration</code> to it.</p>
+<h2 id="the-proxy-is-up-but-requests-fail">The proxy is up but requests fail<a class="headerlink" href="#the-proxy-is-up-but-requests-fail" title="Permanent link">&para;</a></h2>
+<p><strong>Can't connect at all.</strong></p>
+<ul>
+<li>An internal proxy is only reachable from inside the virtual private cloud (VPC). Use <code>ipv4Addressability: internet-facing</code> to reach it from outside. Changing it replaces the proxy, which gets a new address.</li>
+<li>Check <code>spec.ingressCidrs</code> and <code>spec.ingressPrefixLists</code>. They limit who can reach the listener ports.</li>
+<li>A new proxy's DNS name can take a few minutes to resolve.</li>
+</ul>
+<p><strong>Connects, but gets errors or no response.</strong> The proxy might not be getting its configuration, or might not reach your pods.</p>
+<ul>
+<li><strong>Custom security groups:</strong> if you set <code>spec.networkConfiguration.vpcConfiguration.securityGroups</code>, the controller doesn't add any rules. See <a href="../deploy/security_groups/#bring-your-own-security-groups">Bring your own security groups</a> for the full list. You must allow inbound traffic from the proxy to the following:<ul>
+<li>Envoy Gateway pods on TCP 18000 (xDS), and on TCP 18002 (Wasm modules) if you use Wasm extensions</li>
+<li>your backend pods, and any request mirror, <code>ext_authz</code>, or <code>ext_proc</code> services, on their target ports</li>
+</ul>
+</li>
+<li><strong>Pod networking:</strong> pod IPs must be routable in the VPC. The proxy connects to pod IPs directly.</li>
+<li>
+<p><strong>Route status:</strong> check that the route is accepted and its backends resolve:</p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>get<span class="w"> </span>httproute<span class="w"> </span>&lt;name&gt;<span class="w"> </span>-n<span class="w"> </span>&lt;namespace&gt;<span class="w"> </span>-o<span class="w"> </span>yaml
+</code></pre></div>
+</li>
+</ul>
+<h2 id="global-rate-limiting-doesnt-work">Global rate limiting doesn't work<a class="headerlink" href="#global-rate-limiting-doesnt-work" title="Permanent link">&para;</a></h2>
+<p>Global rate limiting isn't supported. See <a href="../compatibility/#envoy-gateway-features">Compatibility</a>. Envoy Gateway still translates a <code>BackendTrafficPolicy</code> with <code>type: Global</code>, so the proxy gets a <code>ratelimit_cluster</code> pointing at <code>envoy-ratelimit.&lt;envoy-gateway-namespace&gt;.svc.cluster.local</code>. That name doesn't resolve outside the cluster, so the cluster has no healthy hosts. What happens next depends on <code>failClosed</code> in the <code>EnvoyGateway</code> config's <code>rateLimit</code> section:</p>
+<p>The following table shows what happens for each <code>failClosed</code> value.</p>
+<table>
+<thead>
+<tr>
+<th><code>failClosed</code></th>
+<th>Symptom</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>false</code> (default)</td>
+<td>Requests pass, and <strong>the limit isn't enforced</strong>. Nothing reports an error.</td>
+</tr>
+<tr>
+<td><code>true</code></td>
+<td>Every request on the affected routes gets <strong>HTTP 500</strong>. Other routes keep working.</td>
+</tr>
+</tbody>
+</table>
+<p>The controller doesn't report either case. To fix it, delete the <code>BackendTrafficPolicy</code>, or change it to <code>type: Local</code>. The proxy drops the <code>ratelimit_cluster</code> and the 500s stop, with no restart. If you don't use global rate limiting, remove the <code>rateLimit</code> section from the <code>EnvoyGateway</code> config too.</p>
+<h2 id="collect-information-for-a-bug-report">Collect information for a bug report<a class="headerlink" href="#collect-information-for-a-bug-report" title="Permanent link">&para;</a></h2>
+<p>Include:</p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>get<span class="w"> </span>gateway,httproute,elbproxyconfiguration<span class="w"> </span>-A<span class="w"> </span>-o<span class="w"> </span>yaml<span class="w"> </span>&gt;<span class="w"> </span>resources.yaml
+kubectl<span class="w"> </span>describe<span class="w"> </span>gateway<span class="w"> </span>-A<span class="w"> </span>&gt;<span class="w"> </span>gateway-events.txt
+kubectl<span class="w"> </span>logs<span class="w"> </span>-n<span class="w"> </span>envoy-gateway-system<span class="w"> </span>deployment/envoy-gateway<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-c<span class="w"> </span>elb-envoy-remote-infra-provider<span class="w"> </span>--tail<span class="o">=</span><span class="m">1000</span><span class="w"> </span>&gt;<span class="w"> </span>sidecar.log
+kubectl<span class="w"> </span>logs<span class="w"> </span>-n<span class="w"> </span>envoy-gateway-system<span class="w"> </span>deployment/envoy-gateway<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-c<span class="w"> </span>envoy-gateway<span class="w"> </span>--tail<span class="o">=</span><span class="m">1000</span><span class="w"> </span>&gt;<span class="w"> </span>envoy-gateway.log
+</code></pre></div>
+<p>Also include the controller and Envoy Gateway versions, and the proxy ARN from <code>status.proxies[].proxyArn</code> if one was created. Remove account IDs, role ARNs, and other sensitive values before sharing.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+      
+    
+  </body>
+</html>
