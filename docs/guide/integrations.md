@@ -5,7 +5,7 @@ This page covers two AWS services that you can connect to a proxy through its `E
 - [AWS WAF](#aws-waf): filter the proxy's HTTP traffic with your own web ACL.
 - [Customer managed KMS keys](#customer-managed-kms-keys): encrypt the proxy's configuration with your own AWS KMS key.
 
-Both are off by default. Each one needs extra permissions in the controller IAM policy ([`k8s/iam-policy.json`](https://github.com/aws/elb-envoy-remote-infra-provider/blob/main/k8s/iam-policy.json)). If you don't use a service, you can remove its statements from the policy.
+Both are off by default. Each one needs extra permissions in the controller IAM policy ([`k8s/iam-policy.json`](https://github.com/aws/elb-envoy-remote-infra-provider/blob/v1.0.0/k8s/iam-policy.json)). If you don't use a service, you can remove its statements from the policy.
 
 ## AWS WAF
 

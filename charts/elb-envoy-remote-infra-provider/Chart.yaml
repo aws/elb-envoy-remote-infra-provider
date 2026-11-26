@@ -2,7 +2,7 @@ apiVersion: v2
 name: elb-envoy-remote-infra-provider
 description: Helm chart for elb-envoy-remote-infra-provider, which connects Envoy Gateway to ELB for Envoy (AWS-managed Envoy)
 type: application
-version: 0.1.0
-appVersion: "0.1.0"
+version: 1.0.0
+appVersion: "1.0.0"
 # Native sidecars (initContainer restartPolicy: Always) require Kubernetes 1.29+.
 kubeVersion: ">=1.29.0-0"
