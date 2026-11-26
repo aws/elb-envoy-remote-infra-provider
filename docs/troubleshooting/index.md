@@ -153,7 +153,7 @@ The event message is `Failed deploy model due to` followed by the error from the
 | `attribute "..." is managed by the controller` | Remove the Envoy log-level attributes from `spec.attributes`. Set `EnvoyProxy.spec.logging.level` instead. |
 | `tag key "..." is externally managed` | That tag key is in `--external-managed-tags`. Remove it from `spec.tags`. |
 | `no node security groups discovered` or `expected exactly one SG tagged "kubernetes.io/cluster/<name>"` | The controller couldn't find the security groups of your nodes. Check that the nodes are Ready EC2 instances with an AWS `spec.providerID`. If a node's primary network interface has several security groups, tag exactly one of them `kubernetes.io/cluster/<cluster-name>`. |
-| `AccessDenied` | The controller IAM policy is missing an action, or the resource isn't tagged as controller-managed. Check the policy against [`k8s/iam-policy.json`](https://github.com/aws/elb-envoy-remote-infra-provider/blob/main/k8s/iam-policy.json). |
+| `AccessDenied` | The controller IAM policy is missing an action, or the resource isn't tagged as controller-managed. Check the policy against [`k8s/iam-policy.json`](https://github.com/aws/elb-envoy-remote-infra-provider/blob/v1.0.0/k8s/iam-policy.json). |
 
 The controller retries failed deploys automatically. After you fix the cause, the next retry picks up the change.
 

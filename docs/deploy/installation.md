@@ -17,7 +17,7 @@ The chart does not install Envoy Gateway. You install and configure it yourself 
 
 The controller runs as an extra container (a sidecar) in the Envoy Gateway pod. You can add that container in one of two ways:
 
-- **Envoy Gateway Helm values (default).** You put the sidecar definition in the Helm values that you use to install Envoy Gateway. No other component runs in your cluster. The file [`k8s/envoy-gateway-values.yaml`](https://github.com/aws/elb-envoy-remote-infra-provider/blob/main/k8s/envoy-gateway-values.yaml) contains the definition.
+- **Envoy Gateway Helm values (default).** You put the sidecar definition in the Helm values that you use to install Envoy Gateway. No other component runs in your cluster. The file [`k8s/envoy-gateway-values.yaml`](https://github.com/aws/elb-envoy-remote-infra-provider/blob/v1.0.0/k8s/envoy-gateway-values.yaml) contains the definition.
 - **Webhook.** You install a webhook from this chart. When Envoy Gateway's pod is created, the webhook adds the sidecar. Choose this only if you can't change Envoy Gateway's Helm values. The webhook needs its own deployment and TLS certificate. With the default `failurePolicy: Fail`, Envoy Gateway pods can't be created while the webhook is down.
 
 The sidecar behaves the same in both options. Steps 3 and 4 have a tab for each option. Use the same option in both steps.
@@ -51,7 +51,7 @@ If your cluster isn't on Amazon EKS, set `VPC_ID` to the ID of the VPC that your
 
 ## Step 1: Create the controller IAM policy
 
-The sidecar calls the ELB and EC2 APIs. Download [`k8s/iam-policy.json`](https://github.com/aws/elb-envoy-remote-infra-provider/blob/main/k8s/iam-policy.json) and replace the `${ClusterName}` placeholder with your cluster name:
+The sidecar calls the ELB and EC2 APIs. Download [`k8s/iam-policy.json`](https://github.com/aws/elb-envoy-remote-infra-provider/blob/v1.0.0/k8s/iam-policy.json) and replace the `${ClusterName}` placeholder with your cluster name:
 
 ```bash
 sed "s/\${ClusterName}/$CLUSTER_NAME/" k8s/iam-policy.json > iam-policy.json
@@ -170,7 +170,7 @@ Envoy Gateway must send infrastructure to the sidecar over a Unix domain socket 
 
 === "Envoy Gateway Helm values (default)"
 
-    [`k8s/envoy-gateway-values.yaml`](https://github.com/aws/elb-envoy-remote-infra-provider/blob/main/k8s/envoy-gateway-values.yaml) contains the `config` section and the sidecar: the container, the shared socket volume, and the socket mount on the Envoy Gateway container. Fill in its placeholders:
+    [`k8s/envoy-gateway-values.yaml`](https://github.com/aws/elb-envoy-remote-infra-provider/blob/v1.0.0/k8s/envoy-gateway-values.yaml) contains the `config` section and the sidecar: the container, the shared socket volume, and the socket mount on the Envoy Gateway container. Fill in its placeholders:
 
     ```bash
     sed -e "s|<tag>|v$VERSION|" \

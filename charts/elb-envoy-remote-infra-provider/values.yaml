@@ -18,7 +18,7 @@ image:
   repository: public.ecr.aws/aws-elb-proxy/elb-envoy-remote-infra-provider
   # Set by 'make release-cut' to the release's image tag, for example v1.0.0.
   # Used by both the webhook and the injected sidecar.
-  tag: "v0.1.0"
+  tag: "v1.0.0"
   pullPolicy: IfNotPresent
 
 # Sidecar --cluster-name. Required when webhook.enabled=true.
