@@ -1,0 +1,1330 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://aws.github.io/elb-envoy-remote-infra-provider/1.0/how-it-works/">
+      
+      
+        <link rel="prev" href="..">
+      
+      
+        <link rel="next" href="../compatibility/">
+      
+      
+      <link rel="icon" href="../assets/images/aws_load_balancer_icon.svg">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.31">
+    
+    
+      
+        <title>How it works - ELB Envoy Remote Infra Provider</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.3cba04c6.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#how-it-works" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="ELB Envoy Remote Infra Provider" class="md-header__button md-logo" aria-label="ELB Envoy Remote Infra Provider" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ELB Envoy Remote Infra Provider
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              How it works
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/aws/elb-envoy-remote-infra-provider" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aws/elb-envoy-remote-infra-provider
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href=".." class="md-tabs__link">
+          
+  
+  Home
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../deploy/installation/" class="md-tabs__link">
+          
+  
+  Deployment
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../guide/overview/" class="md-tabs__link">
+          
+  
+  Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../examples/getting_started/" class="md-tabs__link">
+          
+  
+  Examples
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../troubleshooting/" class="md-tabs__link">
+        
+  
+    
+  
+  Troubleshooting
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="ELB Envoy Remote Infra Provider" class="md-nav__button md-logo" aria-label="ELB Envoy Remote Infra Provider" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    ELB Envoy Remote Infra Provider
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/aws/elb-envoy-remote-infra-provider" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aws/elb-envoy-remote-infra-provider
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            Home
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Welcome
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    How it works
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    How it works
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#components" class="md-nav__link">
+    <span class="md-ellipsis">
+      Components
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#from-gateway-to-elb-proxy" class="md-nav__link">
+    <span class="md-ellipsis">
+      From Gateway to ELB proxy
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-the-proxy-gets-its-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      How the proxy gets its configuration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-traffic-reaches-your-pods" class="md-nav__link">
+    <span class="md-ellipsis">
+      How traffic reaches your pods
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#high-availability-and-leader-election" class="md-nav__link">
+    <span class="md-ellipsis">
+      High availability and leader election
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#merged-gateways" class="md-nav__link">
+    <span class="md-ellipsis">
+      Merged gateways
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deletion-and-cleanup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deletion and cleanup
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#drift-and-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      Drift and recovery
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tags" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tags
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../compatibility/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Compatibility
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Deployment
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deploy/installation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Installation Guide
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deploy/configurations/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Configurations
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deploy/subnet_discovery/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Subnet discovery
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deploy/security_groups/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Security groups
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deploy/migration/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Migrating from in-cluster Envoy
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Guide
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/overview/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ELBProxyConfiguration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/spec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Specification
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/tls/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    TLS certificates
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/integrations/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    AWS integrations
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/observability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Observability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Examples
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Examples
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/getting_started/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Getting Started
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/merged_gateways/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Merged Gateways
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#components" class="md-nav__link">
+    <span class="md-ellipsis">
+      Components
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#from-gateway-to-elb-proxy" class="md-nav__link">
+    <span class="md-ellipsis">
+      From Gateway to ELB proxy
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-the-proxy-gets-its-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      How the proxy gets its configuration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-traffic-reaches-your-pods" class="md-nav__link">
+    <span class="md-ellipsis">
+      How traffic reaches your pods
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#high-availability-and-leader-election" class="md-nav__link">
+    <span class="md-ellipsis">
+      High availability and leader election
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#merged-gateways" class="md-nav__link">
+    <span class="md-ellipsis">
+      Merged gateways
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deletion-and-cleanup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deletion and cleanup
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#drift-and-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      Drift and recovery
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tags" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tags
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="how-it-works">How it works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h1>
+<p>Envoy Gateway normally runs Envoy as a Deployment inside your cluster. With <code>elb-envoy-remote-infra-provider</code>, Envoy Gateway still does all the Gateway API work, but Envoy itself runs on an AWS managed proxy from Elastic Load Balancing (ELB) for Envoy. The controller is the bridge: it takes the infrastructure Envoy Gateway asks for and creates the matching AWS proxy.</p>
+<h2 id="components">Components<a class="headerlink" href="#components" title="Permanent link">&para;</a></h2>
+<p>The following diagram shows how the components connect.</p>
+<pre class="mermaid"><code>flowchart LR
+  subgraph cluster["Kubernetes cluster"]
+    subgraph egpod["Envoy Gateway pod"]
+      eg["envoy-gateway"]
+      sc["elb-envoy-remote-infra-provider&lt;br/&gt;(native sidecar)"]
+      eg -- "gRPC over Unix socket&lt;br/&gt;(infrastructure IR)" --&gt; sc
+    end
+    pods["Backend pods"]
+  end
+  subgraph aws["AWS"]
+    proxy["ELB for Envoy"]
+  end
+  sc -- "ELB for Envoy and EC2 APIs" --&gt; proxy
+  proxy -- "xDS (mTLS, port 18000)" --&gt; eg
+  proxy -- "traffic" --&gt; pods
+  client["Clients"] --&gt; proxy</code></pre>
+<p>The following table describes each component.</p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Where it runs</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Envoy Gateway</strong></td>
+<td>Envoy Gateway pod</td>
+<td>Watches Gateway API resources, computes Envoy config, and serves it over xDS. Configured with a remote infrastructure provider, so it doesn't create Envoy Deployments itself.</td>
+</tr>
+<tr>
+<td><strong>ELB Envoy Remote Infra Provider</strong></td>
+<td>Envoy Gateway pod, as a native sidecar</td>
+<td>Receives infrastructure requests from Envoy Gateway and creates, updates, and deletes AWS proxies and security groups.</td>
+</tr>
+<tr>
+<td><strong>ELB for Envoy</strong></td>
+<td>AWS</td>
+<td>Runs Envoy. Gets its routes and clusters from Envoy Gateway over xDS, and sends traffic to your pods.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="from-gateway-to-elb-proxy">From Gateway to ELB proxy<a class="headerlink" href="#from-gateway-to-elb-proxy" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>You create a Gateway.</strong> Envoy Gateway processes it as usual and builds the infrastructure for it: listeners, ports, and the <code>EnvoyProxy</code> settings.</li>
+<li><strong>Envoy Gateway calls the sidecar.</strong> Instead of creating a Deployment, Envoy Gateway sends this infrastructure to the sidecar over gRPC on a Unix socket shared in the pod. The sidecar caches it and returns immediately, so Envoy Gateway never waits on AWS.</li>
+<li><strong>The controller finds the ELBProxyConfiguration.</strong> Each Gateway needs an <a href="../guide/overview/"><code>ELBProxyConfiguration</code></a> attached to it. Without one, the controller creates nothing on AWS.</li>
+<li><strong>The controller creates AWS resources.</strong> It builds a model of the resources the Gateway needs and deploys it in order:<ol>
+<li>Security groups</li>
+<li>The proxy, with its network settings, AWS Identity and Access Management (IAM) role, tags, and Envoy configuration</li>
+<li>A Kubernetes Service that carries the proxy's address</li>
+</ol>
+</li>
+<li><strong>The Gateway gets an address.</strong> When the proxy is ready, the controller writes the proxy's DNS name into that Service's load balancer status. Envoy Gateway picks it up and publishes it as the Gateway's address.</li>
+</ol>
+<p>Provisioning a new proxy takes several minutes. While the proxy is being created, the controller checks again every 2 minutes. To follow progress, see <a href="../guide/overview/#status-and-events">Status and events</a>.</p>
+<h2 id="how-the-proxy-gets-its-configuration">How the proxy gets its configuration<a class="headerlink" href="#how-the-proxy-gets-its-configuration" title="Permanent link">&para;</a></h2>
+<p>The controller pushes two things to each proxy through the ELB for Envoy API:</p>
+<ul>
+<li><strong>Bootstrap:</strong> the Envoy bootstrap, built the same way Envoy Gateway builds it for in-cluster Envoy, including any <code>EnvoyProxy.spec.bootstrap</code> customization. It points Envoy at Envoy Gateway's xDS server and identifies which Gateway this proxy serves.</li>
+<li><strong>Config archive:</strong> three things Envoy needs: the TLS client certificate, private key, and CA it uses to connect to Envoy Gateway; the Envoy Gateway pod IPs to connect to, for xDS and for Wasm modules; and the Availability Zones of the proxy's subnets (<code>local_cluster</code>), which zone-aware routing needs. Every proxy in the cluster gets the same certificate and key, copied from Envoy Gateway's certs.</li>
+</ul>
+<p>After that, the proxy gets routes, clusters, and endpoints live from Envoy Gateway over xDS. It connects directly to the Envoy Gateway pod IPs on port 18000 using mutual TLS (mTLS). For Wasm extensions, it downloads modules from Envoy Gateway's Wasm server on port 18002.</p>
+<p>The controller compares hashes and only pushes the parts that changed. A new push happens when:</p>
+<ul>
+<li>Envoy Gateway sends new infrastructure for the Gateway.</li>
+<li>Envoy Gateway's TLS certificates rotate. The sidecar watches the cert files.</li>
+<li>Envoy Gateway pod IPs change.</li>
+<li>The <code>ELBProxyConfiguration</code> or a route changes.</li>
+</ul>
+<h2 id="how-traffic-reaches-your-pods">How traffic reaches your pods<a class="headerlink" href="#how-traffic-reaches-your-pods" title="Permanent link">&para;</a></h2>
+<p>The proxy sends traffic directly to pod IPs, using the endpoints Envoy Gateway serves over xDS. This requires pod IPs that are routable in the virtual private cloud (VPC), as with the Amazon VPC CNI.</p>
+<p>To allow this traffic, the controller manages the security groups in the following table.</p>
+<table>
+<thead>
+<tr>
+<th>Security group</th>
+<th>Scope</th>
+<th>Rules</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Frontend SG</strong></td>
+<td>One per Gateway</td>
+<td>Allows inbound traffic on each listener port from <code>spec.ingressCidrs</code> (default <code>0.0.0.0/0</code>, plus <code>::/0</code> with IPv6) and <code>spec.ingressPrefixLists</code>.</td>
+</tr>
+<tr>
+<td><strong>Shared backend SG</strong></td>
+<td>One per controller install (cluster name and controller namespace), attached to every proxy that install manages</td>
+<td>Used as the source for the node security group rules below. Each install creates and revokes only its own backend SG and node SG rules, so installs in different namespaces don't interfere.</td>
+</tr>
+<tr>
+<td><strong>Node SG rules</strong></td>
+<td>Your existing node security groups</td>
+<td>Allows inbound traffic from the shared backend SG on TCP port 18000 (xDS) and TCP port 18002 (Wasm modules), both to Envoy Gateway, and on the target port of every Service the proxy sends traffic to: route backends, request mirror targets, and the <code>ext_authz</code> and <code>ext_proc</code> services of your <code>SecurityPolicy</code> and <code>EnvoyExtensionPolicy</code> resources. The two Envoy Gateway ports open as soon as a Gateway exists, before any route does.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you bring your own security groups with <code>spec.networkConfiguration.vpcConfiguration.securityGroups</code>, the controller uses them as they are. It doesn't create a frontend SG, doesn't add node SG rules, and ignores <code>ingressCidrs</code> and <code>ingressPrefixLists</code>. You must allow the traffic yourself: from the proxy to Envoy Gateway on port 18000 (xDS), and on port 18002 if you use Wasm extensions, and to your backend pods, request mirror targets, and <code>ext_authz</code> and <code>ext_proc</code> services on their target ports. See <a href="../deploy/security_groups/">Security groups</a>.</p>
+</div>
+<h2 id="high-availability-and-leader-election">High availability and leader election<a class="headerlink" href="#high-availability-and-leader-election" title="Permanent link">&para;</a></h2>
+<p>Every Envoy Gateway replica has its own sidecar. All sidecars accept infrastructure from their Envoy Gateway container, but only one, the leader, calls AWS. The sidecars elect a leader with the lease <code>elb-envoy-remote-infra-provider-leader</code>.</p>
+<p>This is why Envoy Gateway's own leader election must be disabled. With it on, only the Envoy Gateway leader sends infrastructure, so the other sidecars' caches stay empty or stale. If leadership then moves to one of those sidecars, it would act on stale data. With it off, every replica keeps its sidecar up to date, and the sidecar lease picks the single writer.</p>
+<p>Disable it in the Envoy Gateway configuration:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">provider</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Custom</span>
+<span class="w">  </span><span class="nt">custom</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">resource</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Kubernetes</span>
+<span class="w">      </span><span class="nt">kubernetes</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">leaderElection</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">disable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">infrastructure</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Remote</span>
+<span class="w">      </span><span class="nt">remote</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">service</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">unix</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/var/run/elb-envoy-remote-infra-provider/server.sock</span>
+</code></pre></div>
+<p>See <a href="../deploy/installation/#step-4-install-envoy-gateway">Installation Guide Step 4</a> for the full setup. For how Envoy Gateway's leader election and remote infrastructure provider work, see the <a href="https://gateway.envoyproxy.io/docs/">Envoy Gateway documentation</a>.</p>
+<h2 id="merged-gateways">Merged gateways<a class="headerlink" href="#merged-gateways" title="Permanent link">&para;</a></h2>
+<p>If you enable Envoy Gateway's merged gateways mode, Envoy Gateway sends one set of infrastructure for the whole GatewayClass. The controller then creates <strong>one proxy for all Gateways in the class</strong>. In this mode, only an <code>ELBProxyConfiguration</code> that targets the GatewayClass applies.</p>
+<h2 id="deletion-and-cleanup">Deletion and cleanup<a class="headerlink" href="#deletion-and-cleanup" title="Permanent link">&para;</a></h2>
+<p>When you delete a Gateway:</p>
+<ol>
+<li>Envoy Gateway tells the sidecar to delete the infrastructure.</li>
+<li>The controller removes node SG rules for ports no other Gateway needs. The two Envoy Gateway ports stay open while any Gateway exists.</li>
+<li>The controller deletes the Service.</li>
+<li>The controller deletes the proxy and waits until it's gone. It checks every 30 seconds.</li>
+<li>Then it deletes the frontend SG. The shared backend SG is removed when no Gateway uses it.</li>
+</ol>
+<p>An <code>ELBProxyConfiguration</code> has a finalizer. You can't delete it while a Gateway still uses it.</p>
+<h2 id="drift-and-recovery">Drift and recovery<a class="headerlink" href="#drift-and-recovery" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Every reconcile corrects drift.</strong> The controller compares the live proxy's configuration, attributes, network settings, and tags with the desired state and fixes differences.</li>
+<li><strong>Some settings replace the proxy.</strong> <code>name</code>, <code>roleArn</code>, and the IP configuration can't change on an existing proxy. Changing one deletes the old proxy and creates a new one, and the Gateway gets a new address.</li>
+<li><strong>Restarts.</strong> When a new leader starts and has no infrastructure yet, it finds existing proxies by their tags, so it can keep managing them.</li>
+<li><strong>Garbage collection.</strong> Every 60 minutes, it looks for proxies whose Gateway is gone, and for orphaned security groups.</li>
+</ul>
+<h2 id="tags">Tags<a class="headerlink" href="#tags" title="Permanent link">&para;</a></h2>
+<p>The controller tags everything it creates so it can find its own resources and so the IAM policy can scope write access. The following table lists the tag keys.</p>
+<table>
+<thead>
+<tr>
+<th>Tag key</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gateway.elbproxy.aws/cluster</code></td>
+<td>Cluster name</td>
+</tr>
+<tr>
+<td><code>gateway.elbproxy.aws/stack</code></td>
+<td>The Gateway (<code>namespace/name</code>) or merged GatewayClass that owns the resource</td>
+</tr>
+<tr>
+<td><code>gateway.elbproxy.aws/resource</code></td>
+<td>Resource type</td>
+</tr>
+<tr>
+<td><code>gateway.elbproxy.aws/managed-by</code></td>
+<td>Marks the resource as managed by this controller</td>
+</tr>
+<tr>
+<td><code>gateway.elbproxy.aws/controller-ns</code></td>
+<td>Namespace of the controller install that owns the shared backend SG</td>
+</tr>
+<tr>
+<td><code>gateway.elbproxy.aws/deploy-mode</code></td>
+<td>Marks resources created for a merged GatewayClass</td>
+</tr>
+</tbody>
+</table>
+<p>You can add your own tags with <code>spec.tags</code> on the <code>ELBProxyConfiguration</code> or the controller's <code>--default-tags</code> flag. When both set the same key, <code>spec.tags</code> wins. Keys listed in <code>--external-managed-tags</code> are left to other systems on proxies: the controller never adds, changes, or removes them there, and setting one in <code>spec.tags</code> is an error. This doesn't apply to security groups. The controller removes any tag it didn't set from the security groups it creates. Don't use keys that start with <code>gateway.elbproxy.aws/</code>. See <a href="../deploy/configurations/">Configurations</a>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+      
+    
+  </body>
+</html>
