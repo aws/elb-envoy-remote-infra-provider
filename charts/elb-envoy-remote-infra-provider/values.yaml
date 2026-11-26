@@ -1,0 +1,74 @@
+# Installs the CRD and sidecar RBAC for a user-managed Envoy Gateway, and
+# optionally the sidecar-injection webhook. Does NOT install Envoy Gateway.
+# Two ways to add the sidecar to Envoy Gateway's pod:
+#   1. Default: through Envoy Gateway's own Helm values (k8s/envoy-gateway-values.yaml).
+#   2. Or: set webhook.enabled=true to inject it automatically.
+
+# Namespace where Envoy Gateway runs. Used for the RBAC binding and, with the
+# webhook, its pod scope.
+envoyGatewayNamespace: envoy-gateway-system
+
+# --- Webhook mode only (webhook.enabled=true): replicaCount through env. ---
+# Without the webhook, set these in k8s/envoy-gateway-values.yaml instead.
+
+# Webhook-host replicas.
+replicaCount: 1
+
+image:
+  repository: public.ecr.aws/aws-elb-proxy/elb-envoy-remote-infra-provider
+  # Set by 'make release-cut' to the release's image tag, for example v1.0.0.
+  # Used by both the webhook and the injected sidecar.
+  tag: "v0.1.0"
+  pullPolicy: IfNotPresent
+
+# Sidecar --cluster-name. Required when webhook.enabled=true.
+clusterName: ""
+
+aws:
+  # Sidecar --aws-region. If empty, the sidecar uses AWS_REGION from
+  # IRSA / Pod Identity.
+  region: ""
+  # Sidecar --aws-vpc-id. Recommended: the sidecar can't auto-detect it without
+  # node IMDS access and fails to start if unresolved.
+  vpcId: ""
+
+# Extra args for the webhook host only; NOT passed to the sidecar.
+# For sidecar flags (e.g. --default-tags), use webhook.sidecar.extraArgs.
+extraArgs: []
+
+# Extra env vars (name: value) for the webhook host only. POD_NAMESPACE is
+# always injected.
+env: {}
+
+# ServiceAccount the injected sidecar runs under (Envoy Gateway's SA), bound to
+# the "-elbproxy" ClusterRole. Its namespace is envoyGatewayNamespace.
+rbac:
+  serviceAccountName: envoy-gateway
+
+# Sidecar-injection mutating webhook. Off by default; enable it when you can't
+# set Envoy Gateway's Helm values.
+webhook:
+  enabled: false
+
+  # Webhook server port (and Service targetPort).
+  bindPort: 9443
+
+  # Port for the webhook host's /readyz readiness probe.
+  healthProbePort: 61779
+
+  # Fail: block EG pod creation if the webhook is down (default; the sidecar is
+  # load-bearing). Ignore: let EG start without the sidecar (silent miss).
+  failurePolicy: Fail
+
+  sidecar:
+    # Mount Envoy Gateway's certs secret so the sidecar can watch it for rotation
+    # and regenerate+push the proxy config (which references these certs via SDS).
+    mountCerts: true
+
+    # Extra args for the injected sidecar, one per entry, e.g.
+    #   - --default-tags=team=a,env=b
+    #   - --external-managed-tags=CostCenter
+    #   - --aws-api-endpoints=EC2=https://ec2.example.com
+    #   - --log-level=debug
+    # clusterName and aws.region/vpcId are added for you; don't repeat them here.
+    extraArgs: []

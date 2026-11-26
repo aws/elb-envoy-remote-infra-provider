@@ -1,0 +1,72 @@
+# Publishes the versioned docs site to the gh-pages branch with mike.
+#   - A push to main that changes the docs publishes the "dev" version.
+#   - To publish a release, run this workflow by hand (Actions > docs > Run workflow). Pick the
+#     release branch or tag. The docs version comes from version.txt on that ref, for example 0.9.0-rc.1
+#     gives 0.9. To publish another version, enter it as MAJOR.MINOR.
+# Patch releases publish to their minor version, so 1.0.1 updates the 1.0 docs.
+name: docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Docs version as MAJOR.MINOR (for example 1.0). Leave empty to use version.txt"
+        required: false
+        default: ""
+        type: string
+      latest:
+        description: "Make this the latest version, which the site root shows"
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish the docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # Pushes to the gh-pages branch.
+    steps:
+      # fetch-depth: 0 fetches the gh-pages branch, which mike needs.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - run: make docs-deps
+      - run: git config user.email actions@github.com
+      - run: git config user.name 'GitHub Actions Docs Publisher'
+
+      - name: Publish dev
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          mike deploy --push --update-aliases dev
+          # Until the first release is published, the site root shows dev.
+          mike list latest > /dev/null 2>&1 || mike set-default --push dev
+
+      - name: Publish a release
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        env:
+          # Passed through the environment, not interpolated into the script.
+          DOCS_VERSION: ${{ inputs.version }}
+          DOCS_LATEST: ${{ inputs.latest }}
+        run: |
+          args=()
+          if [[ -n "${DOCS_VERSION}" ]]; then
+            if [[ ! "${DOCS_VERSION}" =~ ^[0-9]+\.[0-9]+$ ]]; then
+              echo "The version must be MAJOR.MINOR, for example 1.0" >&2
+              exit 1
+            fi
+            args=(DOCS_VERSION="${DOCS_VERSION}")
+          fi
+          make docs-publish ${args[@]+"${args[@]}"} DOCS_LATEST="${DOCS_LATEST}"

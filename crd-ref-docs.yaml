@@ -1,0 +1,11 @@
+# Configuration for API reference docs generation (make api-ref-docs).
+# See https://github.com/elastic/crd-ref-docs.
+processor:
+  ignoreTypes:
+    - "()List$"
+  # RE2 regular expressions describing type fields to exclude from the docs.
+  ignoreFields:
+    - "TypeMeta$"
+render:
+  # Kubernetes version used for links to the Kubernetes API docs.
+  kubernetesVersion: 1.32

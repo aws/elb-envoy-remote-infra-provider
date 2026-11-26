@@ -1,0 +1,102 @@
+# Checks for pull requests and pushes to main.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Cancel a PR's in-progress run when new commits are pushed to it.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  test:
+    name: Vet and unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version-file: go.mod
+      # -tags e2e includes test/e2e, so a change that breaks the e2e build fails here.
+      - run: go vet -tags e2e ./...
+      - run: make test
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version-file: go.mod
+      - run: go install honnef.co/go/tools/cmd/staticcheck@v0.8.2 # release 2026.2.2
+      - run: staticcheck ./...
+
+  generated:
+    name: Generated files up to date
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version-file: go.mod
+          cache: false # Jobs share one cache key; only the test and lint jobs, which build everything, use it.
+      # Must match the controller-gen.kubebuilder.io/version annotation in pkg/config/crd.
+      - run: go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.19.0
+      - run: make generate manifests
+      - name: Check for differences
+        run: |
+          git status --short
+          test -z "$(git status --porcelain)" || { git diff; echo "::error::Run 'make generate manifests' and commit the result."; exit 1; }
+          diff -r pkg/config/crd charts/elb-envoy-remote-infra-provider/crds || { echo "::error::Copy the CRD from pkg/config/crd/ to charts/elb-envoy-remote-infra-provider/crds/."; exit 1; }
+
+  docs:
+    name: Docs build and API reference
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version-file: go.mod
+          cache: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      # Generates docs/guide/spec.md. Must match the version used to commit it.
+      - run: go install github.com/elastic/crd-ref-docs@v0.2.0
+      - run: make docs-deps
+      # Strict MkDocs build, then fail if docs/guide/spec.md isn't up to date.
+      - run: make docs-verify
+
+  govulncheck:
+    name: Known vulnerabilities
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version-file: go.mod
+          cache: false
+      - run: go install golang.org/x/vuln/cmd/govulncheck@latest
+      - run: govulncheck ./...
