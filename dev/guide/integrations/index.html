@@ -1156,7 +1156,7 @@
 <li><a href="#aws-waf">AWS WAF</a>: filter the proxy's HTTP traffic with your own web ACL.</li>
 <li><a href="#customer-managed-kms-keys">Customer managed KMS keys</a>: encrypt the proxy's configuration with your own AWS KMS key.</li>
 </ul>
-<p>Both are off by default. Each one needs extra permissions in the controller IAM policy (<a href="https://github.com/aws/elb-envoy-remote-infra-provider/blob/main/k8s/iam-policy.json"><code>k8s/iam-policy.json</code></a>). If you don't use a service, you can remove its statements from the policy.</p>
+<p>Both are off by default. Each one needs extra permissions in the controller IAM policy (<a href="https://github.com/aws/elb-envoy-remote-infra-provider/blob/v1.0.0/k8s/iam-policy.json"><code>k8s/iam-policy.json</code></a>). If you don't use a service, you can remove its statements from the policy.</p>
 <h2 id="aws-waf">AWS WAF<a class="headerlink" href="#aws-waf" title="Permanent link">&para;</a></h2>
 <p>A proxy has no AWS WAF protection by default. To protect it, you create your own web ACL in AWS WAF and give its ARN to the proxy. The ELB for Envoy service never creates, changes, or deletes a web ACL. It only records which web ACL is associated with the proxy.</p>
 <h3 id="set-a-web-acl-when-you-create-the-proxy">Set a web ACL when you create the proxy<a class="headerlink" href="#set-a-web-acl-when-you-create-the-proxy" title="Permanent link">&para;</a></h3>

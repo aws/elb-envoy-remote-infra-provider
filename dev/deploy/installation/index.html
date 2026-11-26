@@ -1088,7 +1088,7 @@
 <h2 id="choose-how-to-add-the-sidecar">Choose how to add the sidecar<a class="headerlink" href="#choose-how-to-add-the-sidecar" title="Permanent link">&para;</a></h2>
 <p>The controller runs as an extra container (a sidecar) in the Envoy Gateway pod. You can add that container in one of two ways:</p>
 <ul>
-<li><strong>Envoy Gateway Helm values (default).</strong> You put the sidecar definition in the Helm values that you use to install Envoy Gateway. No other component runs in your cluster. The file <a href="https://github.com/aws/elb-envoy-remote-infra-provider/blob/main/k8s/envoy-gateway-values.yaml"><code>k8s/envoy-gateway-values.yaml</code></a> contains the definition.</li>
+<li><strong>Envoy Gateway Helm values (default).</strong> You put the sidecar definition in the Helm values that you use to install Envoy Gateway. No other component runs in your cluster. The file <a href="https://github.com/aws/elb-envoy-remote-infra-provider/blob/v1.0.0/k8s/envoy-gateway-values.yaml"><code>k8s/envoy-gateway-values.yaml</code></a> contains the definition.</li>
 <li><strong>Webhook.</strong> You install a webhook from this chart. When Envoy Gateway's pod is created, the webhook adds the sidecar. Choose this only if you can't change Envoy Gateway's Helm values. The webhook needs its own deployment and TLS certificate. With the default <code>failurePolicy: Fail</code>, Envoy Gateway pods can't be created while the webhook is down.</li>
 </ul>
 <p>The sidecar behaves the same in both options. Steps 3 and 4 have a tab for each option. Use the same option in both steps.</p>
@@ -1113,7 +1113,7 @@ git<span class="w"> </span>clone<span class="w"> </span>--branch<span class="w">
 </code></pre></div>
 <p>If your cluster isn't on Amazon EKS, set <code>VPC_ID</code> to the ID of the VPC that your nodes run in.</p>
 <h2 id="step-1-create-the-controller-iam-policy">Step 1: Create the controller IAM policy<a class="headerlink" href="#step-1-create-the-controller-iam-policy" title="Permanent link">&para;</a></h2>
-<p>The sidecar calls the ELB and EC2 APIs. Download <a href="https://github.com/aws/elb-envoy-remote-infra-provider/blob/main/k8s/iam-policy.json"><code>k8s/iam-policy.json</code></a> and replace the <code>${ClusterName}</code> placeholder with your cluster name:</p>
+<p>The sidecar calls the ELB and EC2 APIs. Download <a href="https://github.com/aws/elb-envoy-remote-infra-provider/blob/v1.0.0/k8s/iam-policy.json"><code>k8s/iam-policy.json</code></a> and replace the <code>${ClusterName}</code> placeholder with your cluster name:</p>
 <div class="highlight"><pre><span></span><code>sed<span class="w"> </span><span class="s2">"s/\${ClusterName}/</span><span class="nv">$CLUSTER_NAME</span><span class="s2">/"</span><span class="w"> </span>k8s/iam-policy.json<span class="w"> </span>&gt;<span class="w"> </span>iam-policy.json
 
 aws<span class="w"> </span>iam<span class="w"> </span>create-policy<span class="w"> </span><span class="se">\</span>
@@ -1285,7 +1285,7 @@ aws<span class="w"> </span>eks<span class="w"> </span>create-pod-identity-associ
 <div class="tabbed-set tabbed-alternate" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Envoy Gateway Helm values (default)</label><label for="__tabbed_3_2">Webhook</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<p><a href="https://github.com/aws/elb-envoy-remote-infra-provider/blob/main/k8s/envoy-gateway-values.yaml"><code>k8s/envoy-gateway-values.yaml</code></a> contains the <code>config</code> section and the sidecar: the container, the shared socket volume, and the socket mount on the Envoy Gateway container. Fill in its placeholders:</p>
+<p><a href="https://github.com/aws/elb-envoy-remote-infra-provider/blob/v1.0.0/k8s/envoy-gateway-values.yaml"><code>k8s/envoy-gateway-values.yaml</code></a> contains the <code>config</code> section and the sidecar: the container, the shared socket volume, and the socket mount on the Envoy Gateway container. Fill in its placeholders:</p>
 <div class="highlight"><pre><span></span><code>sed<span class="w"> </span>-e<span class="w"> </span><span class="s2">"s|&lt;tag&gt;|v</span><span class="nv">$VERSION</span><span class="s2">|"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>-e<span class="w"> </span><span class="s2">"s|&lt;cluster-name&gt;|</span><span class="nv">$CLUSTER_NAME</span><span class="s2">|"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>-e<span class="w"> </span><span class="s2">"s|&lt;region&gt;|</span><span class="nv">$AWS_REGION</span><span class="s2">|"</span><span class="w"> </span><span class="se">\</span>
