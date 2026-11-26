@@ -1,0 +1,97 @@
+# Envoy Gateway Helm values that run elb-envoy-remote-infra-provider as a native
+# sidecar, without the sidecar-injection webhook. Pass to Envoy Gateway's chart:
+#
+#   helm install eg oci://docker.io/envoyproxy/gateway-helm --version v1.10.0 \
+#     -n envoy-gateway-system --create-namespace -f k8s/envoy-gateway-values.yaml
+#
+# Replace the image, cluster name, region and VPC ID below. The sidecar spec
+# matches what the webhook injects (pkg/inject/sidecar).
+config:
+  envoyGateway:
+    gateway:
+      controllerName: gateway.envoyproxy.io/gatewayclass-controller
+    provider:
+      type: Custom
+      custom:
+        resource:
+          type: Kubernetes
+          kubernetes:
+            # Required. The sidecar runs its own leader election and picks the one
+            # replica that writes to AWS. With EG's election on, only the EG leader
+            # pushes IR, so other sidecars keep a stale cache after an EG restart.
+            # Off, every replica pushes to its own sidecar and all caches stay fresh.
+            leaderElection:
+              disable: true
+        infrastructure:
+          type: Remote
+          remote:
+            service:
+              unix:
+                path: /var/run/elb-envoy-remote-infra-provider/server.sock
+
+deployment:
+  pod:
+    # Shared emptyDir for the UDS socket (the chart's pod securityContext
+    # already sets fsGroup: 65532).
+    extraVolumes:
+      - name: elb-envoy-remote-infra-provider-socket
+        emptyDir: {}
+    # Mounted into the envoy-gateway container.
+    extraVolumeMounts:
+      - name: elb-envoy-remote-infra-provider-socket
+        mountPath: /var/run/elb-envoy-remote-infra-provider
+    # Native sidecar: starts before envoy-gateway, which waits for the socket.
+    initContainers:
+      - name: elb-envoy-remote-infra-provider
+        image: public.ecr.aws/aws-elb-proxy/elb-envoy-remote-infra-provider:<tag>
+        imagePullPolicy: IfNotPresent
+        restartPolicy: Always
+        args:
+          - --server-socket-path=/var/run/elb-envoy-remote-infra-provider/server.sock
+          - --cluster-name=<cluster-name>
+          - --aws-region=<region>
+          - --aws-vpc-id=<vpc-id>
+          # Any other sidecar flag goes here, e.g. --default-tags=team=a,env=b
+        env:
+          - name: ENVOY_GATEWAY_NAMESPACE
+            value: envoy-gateway-system
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+          privileged: false
+          runAsNonRoot: true
+          runAsUser: 65532
+          runAsGroup: 65532
+        startupProbe:
+          exec:
+            command: ["/usr/local/bin/elb-envoy-remote-infra-provider", "probe", "--socket=/var/run/elb-envoy-remote-infra-provider/server.sock"]
+          periodSeconds: 1
+          failureThreshold: 30
+        readinessProbe:
+          exec:
+            command: ["/usr/local/bin/elb-envoy-remote-infra-provider", "probe", "--socket=/var/run/elb-envoy-remote-infra-provider/server.sock"]
+          periodSeconds: 10
+        livenessProbe:
+          exec:
+            command: ["/usr/local/bin/elb-envoy-remote-infra-provider", "probe", "--socket=/var/run/elb-envoy-remote-infra-provider/server.sock"]
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        volumeMounts:
+          - name: elb-envoy-remote-infra-provider-socket
+            mountPath: /var/run/elb-envoy-remote-infra-provider
+          # EG's certs volume: the sidecar watches it for rotation.
+          - name: certs
+            mountPath: /tmp/certs
+            readOnly: true

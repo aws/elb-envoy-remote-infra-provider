@@ -1,0 +1,71 @@
+{{- if .Values.webhook.enabled }}
+{{- $tls := fromYaml (include "elb-envoy-remote-infra-provider.webhookCerts" .) }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "elb-envoy-remote-infra-provider.webhookService" . }}-tls
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ include "elb-envoy-remote-infra-provider.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+type: kubernetes.io/tls
+data:
+  ca.crt: {{ $tls.caCert }}
+  tls.crt: {{ $tls.clientCert }}
+  tls.key: {{ $tls.clientKey }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "elb-envoy-remote-infra-provider.webhookService" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ include "elb-envoy-remote-infra-provider.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  ports:
+    - port: 443
+      targetPort: {{ .Values.webhook.bindPort }}
+      protocol: TCP
+      name: https
+  selector:
+    app.kubernetes.io/name: {{ include "elb-envoy-remote-infra-provider.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: {{ include "elb-envoy-remote-infra-provider.fullname" . }}-sidecar
+  labels:
+    app.kubernetes.io/name: {{ include "elb-envoy-remote-infra-provider.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+webhooks:
+  - name: mpod.gateway.elbproxy.aws
+    admissionReviewVersions:
+      - v1
+    sideEffects: None
+    failurePolicy: {{ .Values.webhook.failurePolicy }}
+    clientConfig:
+      caBundle: {{ $tls.caCert }}
+      service:
+        name: {{ include "elb-envoy-remote-infra-provider.webhookService" . }}
+        namespace: {{ .Release.Namespace }}
+        path: /mutate-v1-pod
+        port: 443
+    rules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE"]
+        resources: ["pods"]
+        scope: Namespaced
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: {{ .Values.envoyGatewayNamespace }}
+    objectSelector:
+      matchExpressions:
+        - key: app.kubernetes.io/name
+          operator: NotIn
+          values:
+            - {{ include "elb-envoy-remote-infra-provider.name" . }}
+{{- end }}

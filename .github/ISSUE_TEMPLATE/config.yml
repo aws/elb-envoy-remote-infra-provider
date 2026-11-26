@@ -1,0 +1,4 @@
+contact_links:
+  - name: Report a security issue
+    url: https://aws.amazon.com/security/vulnerability-reporting/
+    about: Please report security issues to AWS Security, not in a public issue.

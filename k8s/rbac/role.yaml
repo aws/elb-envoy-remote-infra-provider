@@ -1,0 +1,36 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: elb-envoy-remote-infra-provider
+# This role only grants permissions NOT already covered by the Envoy Gateway Helm role
+# (eg-gateway-helm-envoy-gateway-role). The following are already granted to the
+# envoy-gateway ServiceAccount by that role and do not need to be repeated here:
+#   - gateway.networking.k8s.io: gateways, gatewayclasses, listenersets, httproutes,
+#                                 grpcroutes, tlsroutes, tcproutes, udproutes,
+#                                 referencegrants (get, list, watch)
+#   - discovery.k8s.io: endpointslices (get, list, watch)
+#   - "": nodes, namespaces (get, list, watch)
+rules:
+  # ELBProxyConfiguration CRD
+  - apiGroups: ["gateway.elbproxy.aws"]
+    resources:
+      - elbproxyconfigurations
+      - elbproxyconfigurations/status
+      - elbproxyconfigurations/finalizers
+    verbs: ["get", "list", "watch", "update", "patch"]
+  # Leader election lease for the extension controller manager
+  # Envoy Gateway uses its own lease; the extension needs a separate one
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+  # Events emitted against Gateway
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+  # Services managed by the extension (proxy endpoint Services)
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["services/status"]
+    verbs: ["get", "patch", "update"]

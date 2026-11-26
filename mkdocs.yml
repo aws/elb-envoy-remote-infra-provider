@@ -1,0 +1,76 @@
+site_name: ELB Envoy Remote Infra Provider
+site_url: https://aws.github.io/elb-envoy-remote-infra-provider/
+repo_name: aws/elb-envoy-remote-infra-provider
+repo_url: https://github.com/aws/elb-envoy-remote-infra-provider
+edit_uri: edit/main/docs/
+strict: true
+
+# Shared snippets are included into pages, not built as pages.
+exclude_docs: |
+  snippets/
+
+nav:
+  - Home:
+      - Welcome: index.md
+      - How it works: how-it-works.md
+      - Compatibility: compatibility.md
+  - Deployment:
+      - Installation Guide: deploy/installation.md
+      - Configurations: deploy/configurations.md
+      - Subnet discovery: deploy/subnet_discovery.md
+      - Security groups: deploy/security_groups.md
+      - Migrating from in-cluster Envoy: deploy/migration.md
+  - Guide:
+      - ELBProxyConfiguration: guide/overview.md
+      - Specification: guide/spec.md
+      - TLS certificates: guide/tls.md
+      - AWS integrations: guide/integrations.md
+      - Observability: guide/observability.md
+  - Examples:
+      - Getting Started: examples/getting_started.md
+      - Merged Gateways: examples/merged_gateways.md
+  - Troubleshooting: troubleshooting/index.md
+
+plugins:
+  - search
+theme:
+  name: material
+  language: en
+  favicon: assets/images/aws_load_balancer_icon.svg
+  palette:
+    primary: indigo
+    accent: indigo
+  font:
+    text: Roboto
+    code: Roboto Mono
+  features:
+    - navigation.tabs
+    - search.suggest
+    - search.highlight
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.snippets:
+      # Snippet links are relative to the including page, so include them only
+      # from pages one directory below docs/ (e.g. docs/tasks/x.md).
+      base_path: docs/snippets
+      check_paths: true
+  - attr_list
+  - codehilite
+  - pymdownx.inlinehilite
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      permalink: true
+
+# Adds the version picker. The site is published per version with mike (see make docs-publish).
+extra:
+  version:
+    provider: mike

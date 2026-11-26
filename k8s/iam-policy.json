@@ -1,0 +1,176 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "EC2ReadOnly",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:DescribeAvailabilityZones",
+                "ec2:DescribeInstances",
+                "ec2:DescribeRouteTables",
+                "ec2:DescribeSecurityGroups",
+                "ec2:DescribeSubnets",
+                "ec2:DescribeVpcs",
+                "ec2:GetSecurityGroupsForVpc",
+                "ec2:ValidateSecurityGroupQuotasForInterface"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "EC2CreateSecurityGroup",
+            "Effect": "Allow",
+            "Action": "ec2:CreateSecurityGroup",
+            "Resource": "*"
+        },
+        {
+            "Sid": "EC2TagOnCreate",
+            "Effect": "Allow",
+            "Action": "ec2:CreateTags",
+            "Resource": "arn:aws:ec2:*:*:security-group/*",
+            "Condition": {
+                "StringEquals": {
+                    "ec2:CreateAction": "CreateSecurityGroup"
+                },
+                "Null": {
+                    "aws:RequestTag/gateway.elbproxy.aws/managed-by": "false"
+                }
+            }
+        },
+        {
+            "Sid": "EC2TagManagedResources",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:CreateTags",
+                "ec2:DeleteTags"
+            ],
+            "Resource": "arn:aws:ec2:*:*:security-group/*",
+            "Condition": {
+                "Null": {
+                    "aws:ResourceTag/gateway.elbproxy.aws/managed-by": "false"
+                }
+            }
+        },
+        {
+            "Sid": "EC2SGRulesManagedResources",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:AuthorizeSecurityGroupIngress",
+                "ec2:RevokeSecurityGroupIngress",
+                "ec2:DeleteSecurityGroup"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "Null": {
+                    "aws:ResourceTag/gateway.elbproxy.aws/managed-by": "false"
+                }
+            }
+        },
+        {
+            "Sid": "EC2SGRulesNodeSG",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:AuthorizeSecurityGroupIngress",
+                "ec2:RevokeSecurityGroupIngress"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "Null": {
+                    "aws:ResourceTag/kubernetes.io/cluster/${ClusterName}": "false"
+                }
+            }
+        },
+        {
+            "Sid": "IAMCreateServiceLinkedRole",
+            "Effect": "Allow",
+            "Action": "iam:CreateServiceLinkedRole",
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "iam:AWSServiceName": "elasticloadbalancing.amazonaws.com"
+                }
+            }
+        },
+        {
+            "Sid": "IAMPassProxyRole",
+            "Effect": "Allow",
+            "Action": "iam:PassRole",
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "iam:PassedToService": "elasticloadbalancing.amazonaws.com"
+                }
+            }
+        },
+        {
+            "Sid": "ELBProxyCreate",
+            "Effect": "Allow",
+            "Action": "elasticloadbalancing:CreateProxy",
+            "Resource": "*"
+        },
+        {
+            "Sid": "ELBProxyInstance",
+            "Effect": "Allow",
+            "Action": [
+                "elasticloadbalancing:DeleteProxy",
+                "elasticloadbalancing:GetProxy",
+                "elasticloadbalancing:TagResource",
+                "elasticloadbalancing:UntagResource",
+                "elasticloadbalancing:ListTagsForResource",
+                "elasticloadbalancing:ListProxyAttributes",
+                "elasticloadbalancing:GetProxyAttributes",
+                "elasticloadbalancing:UpdateProxyAttributes",
+                "elasticloadbalancing:UpdateProxyNetworkConfiguration",
+                "elasticloadbalancing:UpdateProxyConfiguration"
+            ],
+            "Resource": "arn:aws:elasticloadbalancing:*:*:proxy/*",
+            "Condition": {
+                "Null": {
+                    "aws:ResourceTag/gateway.elbproxy.aws/managed-by": "false"
+                }
+            }
+        },
+        {
+            "Sid": "WAFAssociateWebACL",
+            "Effect": "Allow",
+            "Action": "wafv2:AssociateWebACL",
+            "Resource": "arn:aws:wafv2:*:*:regional/webacl/*/*"
+        },
+        {
+            "Sid": "ELBProxyWafAssociation",
+            "Effect": "Allow",
+            "Action": [
+                "elasticloadbalancing:CreateProxyWafAssociation",
+                "elasticloadbalancing:DeleteProxyWafAssociation",
+                "elasticloadbalancing:GetProxyWafAssociation",
+                "elasticloadbalancing:ListProxyWafAssociations"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "CustomerKmsDescribe",
+            "Effect": "Allow",
+            "Action": "kms:DescribeKey",
+            "Resource": "*"
+        },
+        {
+            "Sid": "CustomerKmsCryptoOps",
+            "Effect": "Allow",
+            "Action": [
+                "kms:GenerateDataKey",
+                "kms:Decrypt"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "StringLike": {
+                    "kms:EncryptionContext:aws:elasticloadbalancing:proxy-arn": "arn:aws:elasticloadbalancing:*:*:proxy/*"
+                }
+            }
+        },
+        {
+            "Sid": "TaggingGetResources",
+            "Effect": "Allow",
+            "Action": "tag:GetResources",
+            "Resource": "*"
+        }
+    ]
+}

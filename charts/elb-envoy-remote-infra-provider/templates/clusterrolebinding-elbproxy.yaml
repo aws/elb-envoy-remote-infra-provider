@@ -1,0 +1,15 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "elb-envoy-remote-infra-provider.fullname" . }}-elbproxy
+# Bound to the Envoy Gateway ServiceAccount because the worker runs as the
+# sidecar injected into EG's pod, and a pod's containers share one SA — so this
+# is the only SA we can grant the sidecar's permissions to.
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "elb-envoy-remote-infra-provider.fullname" . }}-elbproxy
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.rbac.serviceAccountName }}
+    namespace: {{ .Values.envoyGatewayNamespace }}

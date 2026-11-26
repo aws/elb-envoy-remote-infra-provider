@@ -1,0 +1,32 @@
+# Creates the v<version> tag when a push to main or a release branch changes version.txt.
+# `make release-cut VERSION=X.Y.Z` writes version.txt. See hack/tag-release.sh.
+name: tag-release
+
+on:
+  push:
+    branches:
+      - main
+      - 'release-*'
+    paths:
+      - version.txt
+
+permissions:
+  contents: read
+
+jobs:
+  tag-release:
+    # Keeps forks from tagging themselves.
+    if: ${{ !github.event.repository.fork }}
+    name: Tag the release
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write # Pushes the tag.
+    steps:
+      # fetch-depth: 0 fetches the existing tags, so the script can tell whether the tag exists.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - run: git config user.email actions@github.com
+      - run: git config user.name 'GitHub Actions Release Tagger'
+      - run: hack/tag-release.sh

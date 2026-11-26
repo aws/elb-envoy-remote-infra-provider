@@ -1,0 +1,28 @@
+# Weekly updates for the Dockerfile's base image digest, the pinned actions in
+# .github/workflows, and the Go modules.
+version: 2
+updates:
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    # One PR for all action updates.
+    groups:
+      actions:
+        patterns: ["*"]
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      # The AWS SDK modules must move together.
+      aws-sdk:
+        patterns:
+          - "github.com/aws/aws-sdk-go-v2*"
+          - "github.com/aws/smithy-go"
+      # Envoy Gateway, Gateway API and Kubernetes versions are tied to the compatibility table in
+      # docs/compatibility.md. Their updates arrive as separate PRs to review by hand.

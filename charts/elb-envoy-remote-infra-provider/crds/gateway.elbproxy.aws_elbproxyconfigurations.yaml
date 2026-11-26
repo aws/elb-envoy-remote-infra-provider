@@ -1,0 +1,444 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.19.0
+  name: elbproxyconfigurations.gateway.elbproxy.aws
+spec:
+  group: gateway.elbproxy.aws
+  names:
+    kind: ELBProxyConfiguration
+    listKind: ELBProxyConfigurationList
+    plural: elbproxyconfigurations
+    shortNames:
+    - elbpc
+    singular: elbproxyconfiguration
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: |-
+          ELBProxyConfiguration is a CRD for ELB for Envoy proxy configuration.
+
+          ELBProxyConfiguration is a direct Gateway API policy: it attaches to one or more Gateway
+          or GatewayClass resources via spec.targetRefs. When a Gateway is targeted, the
+          ELBProxyConfiguration must live in the same namespace as the Gateway.
+
+          When a GatewayClass is targeted, the ELBProxyConfiguration must live in the controller's own namespace
+          GatewayClass-scope targetRefs from ELBProxyConfigurations in any other namespace are ignored.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              attributes:
+                description: Attributes for proxy configuration. Each key can appear
+                  only once.
+                items:
+                  properties:
+                    key:
+                      type: string
+                    value:
+                      type: string
+                  required:
+                  - key
+                  - value
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - key
+                x-kubernetes-list-type: map
+              customerKmsKeyArn:
+                description: |-
+                  CustomerKmsKeyArn is the ARN of a customer-managed KMS key (CMK) used to
+                  encrypt the proxy's configuration content. If unset, the default
+                  service-owned key is used.
+                type: string
+              ingressCidrs:
+                description: |-
+                  IngressCidrs restricts which CIDR ranges are allowed to reach the proxy's
+                  frontend security group. Applies to all listener ports.
+
+                  Each entry must be a valid IPv4 CIDR or IPv6 CIDR
+
+                  If unset, defaults to ["0.0.0.0/0", "::/0"] — open to all traffic.
+                  Only applies when the controller manages the frontend SG (i.e. when
+                  spec.networkConfiguration.vpcConfiguration.securityGroups is not set).
+                items:
+                  type: string
+                maxItems: 100
+                type: array
+              ingressPrefixLists:
+                description: |-
+                  IngressPrefixLists specifies AWS prefix list IDs whose members are allowed
+                  to reach the proxy's frontend security group. Applies to all listener ports.
+
+                  Each entry must be a valid AWS prefix list ID (e.g. "pl-0123456789abcdef0").
+
+                  Only applies when the controller manages the frontend SG (i.e. when
+                  spec.networkConfiguration.vpcConfiguration.securityGroups is not set).
+                items:
+                  type: string
+                maxItems: 30
+                type: array
+              name:
+                description: |-
+                  Name of the proxy. If unspecified, it is generated automatically.
+
+                  Changing it replaces the proxy: the controller deletes it and creates a new one.
+                maxLength: 32
+                minLength: 1
+                pattern: ^[a-zA-Z0-9]+$|^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]$
+                type: string
+              networkConfiguration:
+                description: NetworkConfiguration for VPC and IP settings
+                properties:
+                  ipConfiguration:
+                    description: |-
+                      IpConfiguration defines IP addressing settings for IPv4 and IPv6.
+                      Changing it replaces the proxy: the controller deletes it and creates a new one.
+                    properties:
+                      ipAddressingConfiguration:
+                        description: |-
+                          IpAddressingConfiguration defines IPv4 and IPv6 addressability settings.
+                          If unset, defaults are derived from the EnvoyProxy IPFamily:
+                            IPv4 (default): ipv4=internal, ipv6=off
+                            IPv6:           ipv4=off,      ipv6=internal
+                            DualStack:      ipv4=internal, ipv6=internal
+                          "internal" (default) means VPC-only; use "internet-facing" to expose publicly.
+                          The ELB Proxy API rejects these combinations: both off; IPv4 internet-facing
+                          with IPv6 internal; and IPv4 internal with IPv6 internet-facing. Quote "off"
+                          in YAML, since an unquoted off is parsed as the boolean false.
+                        properties:
+                          ipv4Addressability:
+                            description: |-
+                              Ipv4Addressability defines IPv4 addressing mode.
+                              If unset, defaults are derived from the EnvoyProxy IPFamily. "internal" is the default.
+                            enum:
+                            - "off"
+                            - internal
+                            - internet-facing
+                            type: string
+                          ipv6Addressability:
+                            description: |-
+                              Ipv6Addressability defines IPv6 addressing mode.
+                              If unset, defaults are derived from the EnvoyProxy IPFamily. "off" is the default for IPv4-only.
+                            enum:
+                            - "off"
+                            - internal
+                            - internet-facing
+                            type: string
+                        type: object
+                    type: object
+                  vpcConfiguration:
+                    description: VpcConfiguration defines VPC-specific settings including
+                      subnets and security groups.
+                    properties:
+                      securityGroups:
+                        description: SecurityGroups for the proxy. If unspecified,
+                          the controller will use default security groups.
+                        items:
+                          properties:
+                            securityGroupId:
+                              type: string
+                          required:
+                          - securityGroupId
+                          type: object
+                        type: array
+                      subnets:
+                        description: |-
+                          Subnets for the proxy. If unspecified, the controller will use subnet Auto-Discovery.
+                          When set, provide at least 2 subnets, each in a different Availability Zone,
+                          all in the same VPC.
+                        items:
+                          properties:
+                            subnetId:
+                              type: string
+                          required:
+                          - subnetId
+                          type: object
+                        minItems: 2
+                        type: array
+                    type: object
+                type: object
+              roleArn:
+                description: |-
+                  The Amazon Resource Name (ARN) of the IAM role that provides permissions to
+                  the code that your Envoy configuration runs on the proxy, such as filters and
+                  extensions. These are the permissions that this code needs when it calls AWS
+                  services.
+
+                  Changing it replaces the proxy: the controller deletes it and creates a new one.
+                maxLength: 2048
+                minLength: 20
+                pattern: ^arn:[a-z-]+:iam::[0-9]{12}:role/.+$
+                type: string
+              tags:
+                additionalProperties:
+                  type: string
+                description: Tags defines list of Tags on the Proxy.
+                type: object
+              targetRefs:
+                description: |-
+                  TargetRefs are the Gateway or GatewayClass resources this ELBProxyConfiguration
+                  attaches to.
+
+                  Only group "gateway.networking.k8s.io" with kind "Gateway" or
+                  "GatewayClass" are accepted. Gateway targets resolve within the
+                  ELBProxyConfiguration's own namespace; GatewayClass targets are honored only
+                  when the ELBProxyConfiguration lives in the controller's own namespace
+                  When multiple ELBProxyConfigurations resolve to the same Gateway, a Gateway-scoped
+                  attachment overrides a GatewayClass-scoped one. Ties within the same
+                  scope are broken by creationTimestamp, then namespace, then name.
+                items:
+                  description: |-
+                    LocalPolicyTargetReference identifies an API object to apply a direct or
+                    inherited policy to. This should be used as part of Policy resources
+                    that can target Gateway API resources. For more information on how this
+                    policy attachment model works, and a sample Policy resource, refer to
+                    the policy attachment documentation for Gateway API.
+                  properties:
+                    group:
+                      description: Group is the group of the target resource.
+                      maxLength: 253
+                      pattern: ^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
+                      type: string
+                    kind:
+                      description: Kind is kind of the target resource.
+                      maxLength: 63
+                      minLength: 1
+                      pattern: ^[a-zA-Z]([-a-zA-Z0-9]*[a-zA-Z0-9])?$
+                      type: string
+                    name:
+                      description: Name is the name of the target resource.
+                      maxLength: 253
+                      minLength: 1
+                      type: string
+                  required:
+                  - group
+                  - kind
+                  - name
+                  type: object
+                maxItems: 16
+                minItems: 1
+                type: array
+                x-kubernetes-validations:
+                - message: targetRefs must reference gateway.networking.k8s.io/Gateway
+                    or gateway.networking.k8s.io/GatewayClass
+                  rule: self.all(r, r.group == 'gateway.networking.k8s.io' && (r.kind
+                    == 'Gateway' || r.kind == 'GatewayClass'))
+            required:
+            - networkConfiguration
+            - roleArn
+            - targetRefs
+            type: object
+          status:
+            description: ELBProxyConfigurationStatus defines the observed state of
+              ELBProxyConfiguration
+            properties:
+              conditions:
+                description: |-
+                  Conditions describe the ELBProxyConfiguration.
+
+                  Known condition types:
+                    - "Accepted": True when this is the winning policy for at least one target
+                      Gateway; False/Conflicted or False/InvalidTargetRef otherwise.
+                    - "Programmed": True when at least one backing proxy is active. Per-Gateway
+                      health is in Proxies.
+                items:
+                  description: Condition contains details for one aspect of the current
+                    state of this API Resource.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from one status to another.
+                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              observedGeneration:
+                description: ObservedGeneration reflects the generation of the most
+                  recently observed ELBProxyConfiguration
+                format: int64
+                type: integer
+              proxies:
+                description: |-
+                  Proxies reports the health of each AWS proxy backing this ELBProxyConfiguration,
+                  one entry per target Gateway (a merged GatewayClass has one entry).
+
+                  Atomic because the key, gatewayRef, is a struct and a listMapKey must be scalar.
+                items:
+                  description: |-
+                    ProxyStatusEntry reports the health of one AWS proxy backing this ELBProxyConfiguration
+                    for a specific target Gateway.
+                  properties:
+                    conditions:
+                      description: |-
+                        Conditions describe the health of this proxy.
+
+                        Known condition types:
+                          - "Programmed": True when the proxy is active. False with reason Pending
+                            (being created), ActionRequired (the AWS status reasons are in the message),
+                            CreateFailed, or Deleting. After Deleting, the entry is removed on Gateway
+                            deletion, or moves to Pending on replacement.
+                      items:
+                        description: Condition contains details for one aspect of
+                          the current state of this API Resource.
+                        properties:
+                          lastTransitionTime:
+                            description: |-
+                              lastTransitionTime is the last time the condition transitioned from one status to another.
+                              This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                            format: date-time
+                            type: string
+                          message:
+                            description: |-
+                              message is a human readable message indicating details about the transition.
+                              This may be an empty string.
+                            maxLength: 32768
+                            type: string
+                          observedGeneration:
+                            description: |-
+                              observedGeneration represents the .metadata.generation that the condition was set based upon.
+                              For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                              with respect to the current state of the instance.
+                            format: int64
+                            minimum: 0
+                            type: integer
+                          reason:
+                            description: |-
+                              reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                              Producers of specific condition types may define expected values and meanings for this field,
+                              and whether the values are considered a guaranteed API.
+                              The value should be a CamelCase string.
+                              This field may not be empty.
+                            maxLength: 1024
+                            minLength: 1
+                            pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                            type: string
+                          status:
+                            description: status of the condition, one of True, False,
+                              Unknown.
+                            enum:
+                            - "True"
+                            - "False"
+                            - Unknown
+                            type: string
+                          type:
+                            description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                            maxLength: 316
+                            pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                            type: string
+                        required:
+                        - lastTransitionTime
+                        - message
+                        - reason
+                        - status
+                        - type
+                        type: object
+                      type: array
+                      x-kubernetes-list-map-keys:
+                      - type
+                      x-kubernetes-list-type: map
+                    gatewayRef:
+                      description: GatewayRef identifies the Gateway this entry describes.
+                      properties:
+                        kind:
+                          default: Gateway
+                          description: 'Kind of the referent: "GatewayClass" for a
+                            merged gateway, else "Gateway".'
+                          enum:
+                          - Gateway
+                          - GatewayClass
+                          type: string
+                        name:
+                          description: Name of the referent Gateway (or GatewayClass
+                            name for a merged gateway).
+                          type: string
+                        namespace:
+                          description: Namespace of the referent. Empty for a merged
+                            GatewayClass (cluster-scoped).
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    proxyArn:
+                      description: ProxyArn is the ARN of the AWS proxy backing this
+                        Gateway. Empty until known.
+                      type: string
+                  required:
+                  - gatewayRef
+                  type: object
+                maxItems: 32
+                type: array
+                x-kubernetes-list-type: atomic
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

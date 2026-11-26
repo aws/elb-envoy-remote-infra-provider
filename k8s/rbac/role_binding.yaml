@@ -1,0 +1,12 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: elb-envoy-remote-infra-provider
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: elb-envoy-remote-infra-provider
+subjects:
+  - kind: ServiceAccount
+    name: envoy-gateway
+    namespace: envoy-gateway-system

@@ -1,0 +1,32 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "elb-envoy-remote-infra-provider.fullname" . }}-elbproxy
+# Permissions for the injected sidecar (the full worker), bound to the Envoy
+# Gateway ServiceAccount. This grants ONLY what Envoy Gateway's own ClusterRole
+# does not already give that SA:
+#   - our ELBProxyConfiguration CRD (EG knows nothing about it)
+#   - WRITE access to Services (EG grants read-only; we create/manage proxy Services)
+#   - leader-election leases and event emission
+# Read access to Gateway API routes, gateways, listenersets and referencegrants,
+# EnvoyProxy, namespaces, endpointslices, and configmaps is inherited from Envoy
+# Gateway's role on the same SA.
+rules:
+  - apiGroups: ["gateway.elbproxy.aws"]
+    resources:
+      - elbproxyconfigurations
+      - elbproxyconfigurations/status
+      - elbproxyconfigurations/finalizers
+    verbs: ["get", "list", "watch", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["services/status"]
+    verbs: ["get", "update", "patch"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]

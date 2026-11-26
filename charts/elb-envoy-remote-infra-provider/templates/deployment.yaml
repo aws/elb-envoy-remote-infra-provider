@@ -1,0 +1,81 @@
+{{- if .Values.webhook.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "elb-envoy-remote-infra-provider.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "elb-envoy-remote-infra-provider.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "elb-envoy-remote-infra-provider.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "elb-envoy-remote-infra-provider.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      serviceAccountName: {{ include "elb-envoy-remote-infra-provider.fullname" . }}
+      containers:
+        - name: elb-envoy-remote-infra-provider
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - --enable-sidecar-webhook=true
+            - --webhook-bind-port={{ .Values.webhook.bindPort }}
+            - --webhook-cert-dir=/tmp/k8s-webhook-server/serving-certs
+            - --sidecar-image={{ .Values.image.repository }}:{{ .Values.image.tag }}
+            - --sidecar-image-pull-policy={{ .Values.image.pullPolicy }}
+            - --sidecar-mount-certs={{ .Values.webhook.sidecar.mountCerts }}
+            - --health-probe-bind-addr=:{{ .Values.webhook.healthProbePort }}
+{{- range .Values.extraArgs }}
+            - {{ . }}
+{{- end }}
+            # Sidecar flags: the single path for all sidecar config.
+            - {{ printf "--sidecar-extra-args=--cluster-name=%s" (required "clusterName is required" .Values.clusterName) | quote }}
+{{- if .Values.aws.region }}
+            - {{ printf "--sidecar-extra-args=--aws-region=%s" .Values.aws.region | quote }}
+{{- end }}
+{{- if .Values.aws.vpcId }}
+            - {{ printf "--sidecar-extra-args=--aws-vpc-id=%s" .Values.aws.vpcId | quote }}
+{{- end }}
+{{- range .Values.webhook.sidecar.extraArgs }}
+            - {{ printf "--sidecar-extra-args=%s" . | quote }}
+{{- end }}
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: ENVOY_GATEWAY_NAMESPACE
+              value: {{ .Values.envoyGatewayNamespace }}
+{{- range $name, $value := .Values.env }}
+            - name: {{ $name }}
+              value: {{ $value | quote }}
+{{- end }}
+          ports:
+            - name: webhook
+              containerPort: {{ .Values.webhook.bindPort }}
+              protocol: TCP
+            - name: healthz
+              containerPort: {{ .Values.webhook.healthProbePort }}
+              protocol: TCP
+          # Route webhook traffic only once the server completes a TLS handshake.
+          # With failurePolicy: Fail, EG pod creation still fails if no replica is ready.
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: healthz
+            periodSeconds: 5
+          volumeMounts:
+            - name: webhook-certs
+              mountPath: /tmp/k8s-webhook-server/serving-certs
+              readOnly: true
+      volumes:
+        - name: webhook-certs
+          secret:
+            secretName: {{ include "elb-envoy-remote-infra-provider.webhookService" . }}-tls
+{{- end }}
